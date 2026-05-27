@@ -106,11 +106,18 @@
   min-height: 60vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 30px;
   font-family: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.65;
   color: #222;
+}
+
+.step-inner {
+  position: sticky;
+  top: 70px;
+  padding-bottom: 20px;
 }
 
 #sections .title {
