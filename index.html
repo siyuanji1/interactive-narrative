@@ -3,221 +3,133 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Students & ChatGPT: A Global Survey — IMT 561 Team Harry and Adam</title>
+  <title>IMT 561 Team Harry and Adam Data Visualization: Design and Development</title>
   <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
   <link rel="stylesheet" type="text/css" href="css/style.css" />
 </head>
 
 <body>
   <header id="site-header">
-    <span id="site-title">IMT 561 Team Harry and Adam</span>
-    <span id="site-course">Students &amp; ChatGPT: A Global Perspective</span>
+    <span id="site-title">Your Project Title</span>
+    <span id="site-course">IMT 561 Team Harry and Adam Data Visualization: Design and Development</span>
     <span id="debug-state"></span>
   </header>
   <div class="container">
     <div id='graphic'>
       <div id='sections'>
-
-        <!-- 0: Title card (full-viz, no text overlay) -->
-        <section class="step" data-active-index="0" data-layout="full-viz">
+        <section class="step" data-active-index="0">
+          <div class="title">IMT 561 Team Harry and Adam Final Project</div>
+          Here is a template to work on your final project.<br /><br />
+          Your mission is to create an <b>interactive article using P5.js</b>.
         </section>
-
-        <!-- 1: Global reach bubble chart -->
-        <section class="step" data-active-index="1">
-          <div class="title">A Truly Global Survey</div>
-          In 2023–2024, researchers at the University of Ljubljana partnered with over 200 institutions
-          worldwide to ask: <em>How do university students really feel about ChatGPT?</em>
-          <br /><br />
-          The result: <strong>23,218 responses from 149 countries</strong> — one of the largest cross-cultural
-          studies on AI in education ever conducted. Each bubble is a country; size reflects response count.
-          <br /><br />
-          Hover over a bubble to see the country and number of respondents.
-        </section>
-
-        <!-- 2: Demographics donuts -->
-        <section class="step" data-active-index="2">
-          <div class="title">Who Took the Survey?</div>
-          The survey reached students across all levels of higher education and every major discipline.
-          <br /><br />
-          <strong>Gender:</strong> Women made up 58% of respondents, men 40%, with 2% identifying as
-          other or preferring not to say.
-          <br /><br />
-          <strong>Study level:</strong> 82% were undergraduates — the population most exposed to academic
-          integrity policy decisions around AI.
-          <br /><br />
-          <strong>Field:</strong> Social sciences dominated (40%), followed by applied sciences (34%),
-          giving a rich view across quantitative and qualitative disciplines.
-        </section>
-
-        <!-- 3: Usage gauge -->
-        <section class="step" data-active-index="3">
-          <div class="title">ChatGPT Has Reached the Classroom</div>
-          Nearly <strong>69% of respondents</strong> had used ChatGPT at least once — a striking figure
-          given that the tool was barely a year old when many were surveyed.
-          <br /><br />
-          Among users, the majority use it "rarely" or "occasionally." Fewer than 4% describe themselves
-          as extensive users.
-          <br /><br />
-          This tells us ChatGPT has achieved mass awareness, but not yet deep daily integration in most
-          students' academic routines.
-        </section>
-
-        <!-- 4: NYT-style field sort — TALL SECTION for animation scroll room -->
-        <section class="step" data-active-index="4" style="min-height: 140vh;">
+        <section class="step" data-active-index="1" style="min-height: 140vh;">
           <div class="title">Does Your Major Predict Your Use?</div>
           Scroll to watch students sort into "Using AI" and "Not Using AI" — grouped by academic field.
           <br /><br />
-          <strong>Applied Sciences students lead adoption at 76.5%</strong> — computer science, engineering,
-          and medicine students are building with or studying AI directly.
+          <strong>Applied Sciences students lead adoption at 76.5%</strong> — computer science,
+          engineering, and medicine students are building with or studying AI directly.
           <br /><br />
-          The social sciences, arts, and natural sciences sit close together at 68–70%, suggesting that
-          curiosity about ChatGPT cuts across nearly every field.
+          Social sciences, arts, and natural sciences all cluster near 68–70%, suggesting curiosity
+          about ChatGPT cuts across nearly every discipline.
           <br /><br />
-          Each colored card below represents a group of students. Watch them flow into place as you scroll.
+          Each colored card represents a group of students. Watch them flow into place as you scroll.
         </section>
-
-        <!-- 5: Task usage bar chart -->
+        <section class="step" data-active-index="2">
+          <div class="title">IMT 561 Team Harry and Adam Final Project</div>
+          Here is a template to work on your final project.<br /><br />
+          Your mission is to create an <b>interactive article using P5.js</b>.<br /><br />
+          <b>Sections</b><br />
+          Note that each section in index.html corresponds to a section in the scrolling article. You can add or remove sections as needed.
+        </section>
+        <section class="step" data-active-index="3">
+          <div class="title">Narrative</div>
+          These sections will tell a story. You can use them to explain the visualization, provide context,
+          or share insights.
+        </section>
+        <section class="step" data-active-index="4">
+          <div class="title">Be creative</div>
+          Surprise your readers with interesting interactions, animations, or data visualizations.
+        </section>
         <section class="step" data-active-index="5">
-          <div class="title">What Are Students Using It For?</div>
-          Students reach for ChatGPT most often for <strong>brainstorming</strong> and
-          <strong>academic writing</strong> — tasks that benefit from an always-available thinking partner.
-          <br /><br />
-          <strong>Summarizing</strong> and <strong>research assistance</strong> are also popular,
-          reflecting ChatGPT's strength at distilling information quickly.
-          <br /><br />
-          <strong>Coding assistance</strong>, <strong>math help</strong>, and <strong>creative writing</strong>
-          rank lowest — outside computer science, technical use is still limited.
-          <br /><br />
-          Scores on a 1–5 scale (Never → Always).
+          <div class="title">Same visualization multiple sections</div>
+          Some visualizations may be relevant to multiple sections. You can reuse the same visualization
+          across different sections to reinforce key points. Or build on the previous visualization to just add on.
         </section>
-
-        <!-- 6: Ethical concerns (Q22) -->
+        <div id="extra-space">
+        </div>
         <section class="step" data-active-index="6">
-          <div class="title">Students Are Worried About Ethics</div>
-          Students aren't naive about the risks. Agreement sits <em>above neutral</em> that ChatGPT
-          might <strong>mislead with inaccurate information</strong>, encourage
-          <strong>plagiarism</strong>, and encourage <strong>cheating</strong>.
-          <br /><br />
-          Fears about replacing formal education or increasing social isolation score comparatively
-          lower — students are more concerned about day-to-day academic integrity than existential risks.
-          <br /><br />
-          Bars right of center = above-neutral agreement; left = disagreement.
+          <div class="title">Examples</div>
+          There is two examples in this code. One is a grid of circles that changes color
+          based on the section index. The other is a scatter plot and bar chart that
+          shows random data points. You can modify or replace these examples with your own visualizations.
+          Make sure you read both source files to understand how they work.
         </section>
-
-        <!-- 7: Learning outcomes (Q26) -->
         <section class="step" data-active-index="7">
-          <div class="title">But They See Real Academic Value</div>
-          Despite ethical concerns, students broadly believe ChatGPT <em>can</em> improve their education.
-          <br /><br />
-          <strong>General knowledge</strong> and <strong>access to sources</strong> score highest —
-          students see ChatGPT as an always-on encyclopedia and research assistant.
-          <br /><br />
-          <strong>Personalized education</strong> and <strong>class engagement</strong> score lowest,
-          suggesting skepticism that AI can replace the interactive, social classroom.
-          <br /><br />
-          All items sit above neutral — the signal is cautious optimism.
+          <div class="title">Best of Luck in the Project!</div>
+          You are now ready to start building your interactive article. Good luck!
         </section>
-
-        <!-- 8: Satisfaction (Q24) -->
-        <section class="step" data-active-index="8">
-          <div class="title">Satisfied — But Not a Replacement</div>
-          Students are most satisfied with ChatGPT as a practical tool: they rate it highly for
-          <strong>assistance quality</strong> and <strong>information quality</strong>.
-          <br /><br />
-          However, the idea that ChatGPT is <em>easier than interacting with professors or colleagues</em>
-          scores well below neutral — students don't see it as a social substitute.
-          <br /><br />
-          The message for AI policy: students want ChatGPT as a <em>supplement</em>, not a replacement
-          for human academic relationships.
+        <section class="step" data-active-index="8" data-layout="full-text">
+          <div class="title">Full-text section</div>
+          Add <code>data-layout="full-text"</code> to a section to hide the visualization and
+          give the text the full width of the screen. Use this for introductions, transitions,
+          or any moment where the data should step aside and the writing takes center stage.<br /><br />
+          This is a good place for a pull quote, a key finding stated plainly, or a paragraph
+          that needs room to breathe without competing with a chart.
         </section>
-
-        <!-- 9: Labor market (Q30) -->
-        <section class="step" data-active-index="9">
-          <div class="title">A Tool That Will Reshape Work</div>
-          Students globally believe ChatGPT will <strong>change the nature of jobs</strong>,
-          <strong>increase demand for AI skills</strong>, and <strong>facilitate remote work</strong>.
-          <br /><br />
-          The most agreed-upon item: workers will need to <strong>acquire new skills</strong>. Students
-          are under no illusion that the labor market is static.
-          <br /><br />
-          Notably, "reduce the number of jobs" scores nearest to neutral — students see ChatGPT as
-          transforming work, not eliminating it outright.
+        <section class="step" data-active-index="9" data-layout="full-viz">
+          <div class="title">Full-visualization section</div>
+          Add <code>data-layout="full-viz"</code> to a section to expand the visualization
+          to the full screen width. The text column disappears and the sketch fills the space.
+          Use this for a dramatic reveal, a dense chart that needs every pixel, or a
+          cinematic moment in your story.
         </section>
-
-        <!-- 10: Emotions radar (Q32) -->
-        <section class="step" data-active-index="10">
-          <div class="title">How It Feels to Use ChatGPT</div>
-          The dominant emotion is <strong>curiosity</strong> — the single highest-scoring feeling —
-          followed by <strong>calm</strong> and <strong>happiness</strong>.
-          <br /><br />
-          Negative emotions like <strong>sadness</strong>, <strong>shame</strong>, and <strong>anger</strong>
-          sit near the "Never" end of the scale. While students hold ethical concerns intellectually, the
-          day-to-day experience is largely positive and engaging.
-          <br /><br />
-          This emotional openness may partly explain rapid adoption: students approach ChatGPT with
-          curiosity, not fear.
-        </section>
-
-        <div id="extra-space"></div>
-
-        <!-- 11: About (full-text) -->
-        <section class="step author-section" data-active-index="0" data-layout="full-text">
-          <div class="title">About This Project</div>
-          <p>
-            This interactive article visualizes data from the <em>Global ChatGPT Student Survey</em>
-            (CovidSocLab / University of Ljubljana, 2023–2024), a 174-question study spanning
-            149 countries and 23,218 higher education students.
-          </p>
-          <p>
-            The survey covers demographics, usage patterns, capabilities perceptions, ethical concerns,
-            satisfaction, learning outcomes, labor market views, and emotional responses — a comprehensive
-            snapshot of how the next generation thinks about generative AI.
-          </p>
+        <section class="step author-section" data-active-index="10" data-layout="full-text">
+          <div class="title">About the Authors</div>
           <div class="authors">
             <div class="author">
-              <div class="author-name">Harry</div>
-              <div class="author-bio">IMT 561 — Data Visualization: Design and Development,
-                University of Washington Information School.</div>
+              <div class="author-name">Author One</div>
+              <div class="author-bio">Brief bio or affiliation. Describe your background, research interests, or role in this project.</div>
             </div>
             <div class="author">
-              <div class="author-name">Adam Ji</div>
-              <div class="author-bio">IMT 561 — Data Visualization: Design and Development,
-                University of Washington Information School.</div>
+              <div class="author-name">Author Two</div>
+              <div class="author-bio">Brief bio or affiliation. Describe your background, research interests, or role in this project.</div>
             </div>
           </div>
-          <p style="margin-top:1.5em; font-size:0.85em; color:#888;">
-            Data source: CovidSocLab Global ChatGPT Student Survey ·
-            Visualizations built with p5.js · Inspired by NYT Upshot
-          </p>
         </section>
-
       </div>
-      <div id='vis' class='vis-hidden'></div>
-      <div id="extra-space"></div>
+      <div id='vis' class='vis-hidden'>
+      </div>
+      <div id="extra-space">
+      </div>
     </div>
   </div>
 
-  <!-- p5.js -->
+
+  <!-- p5.js (using CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
-  <!-- helpers -->
+  <!-- helpers (data/loading, scroller, visual controller) -->
   <script src="js/helpers/data_loader.js"></script>
   <script src="js/helpers/scroller.js"></script>
   <script src="js/helpers/visual_controller.js"></script>
+
+  <!-- orchestrator (wires scroller -> sketch) -->
   <script src="js/helpers/sections.js"></script>
-  <!-- sketch manager -->
+
+  <!-- sketches (manager) -->
   <script src="js/sketches/sketch_manager.js"></script>
-  <!-- visualizations -->
-  <script src="js/sketches/viz/viz_title.js"></script>
-  <script src="js/sketches/viz/viz_globe.js"></script>
-  <script src="js/sketches/viz/viz_demographics.js"></script>
-  <script src="js/sketches/viz/viz_usage.js"></script>
+
+  <!-- sketches (example renderer) -->
+  <script src="js/sketches/examples/sketch_grid.js"></script>
+
+  <!-- sketches (renderers): UPDATE HERE FOR PROJECT -->
   <script src="js/sketches/viz/viz_field_sort.js"></script>
-  <script src="js/sketches/viz/viz_tasks.js"></script>
-  <script src="js/sketches/viz/viz_attitudes.js"></script>
-  <script src="js/sketches/viz/viz_labor.js"></script>
-  <script src="js/sketches/viz/viz_emotions.js"></script>
-  <!-- renderer -->
+  <script src="js/sketches/viz/viz_title.js"></script>
+  <script src="js/sketches/viz/viz_progress_color.js"></script>
+  <script src="js/sketches/viz/viz_scatter.js"></script>
+  <script src="js/sketches/viz/viz_bar.js"></script>
   <script src="js/sketches/sketch_renderer.js"></script>
 
+
 </body>
+
 </html>
