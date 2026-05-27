@@ -1,6 +1,4 @@
 // sketch_renderer.js
-
-// Responsible for rendering the main visualization based on the current active index
 (function () {
     window.Renderer = {
 
@@ -20,7 +18,7 @@
         draw: function (p, manager, ai, progress) {
 
             if (ai === 0) {
-                window.VizTitle.draw(p, manager, ai, progress);
+                window.VizTitle && window.VizTitle.draw(p, manager, ai, progress);
                 return;
             }
 
@@ -34,18 +32,18 @@
                 return;
             }
 
-            if (ai === 6  || ai === 9) {
-                window.VizProgressColor.draw(p, manager, ai, progress);
+            if (ai === 3) {
+                window.VizEmotionLine && window.VizEmotionLine.draw(p, manager, ai, progress);
                 return;
             }
 
-            if ((ai >= 4 && ai < 6)) {
-                window.VizScatter.draw(p, manager, ai, progress);
+            if (ai === 4) {
+                window.VizParallel && window.VizParallel.draw(p, manager, ai, progress);
                 return;
             }
 
-            if (ai === 7) {
-                window.VizBar.draw(p, manager, ai, progress);
+            if (ai === 5) {
+                window.VizLollipop && window.VizLollipop.draw(p, manager, ai, progress);
                 return;
             }
         }
