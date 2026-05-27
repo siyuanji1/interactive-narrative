@@ -20,7 +20,7 @@
 
         _CARD:      7,
         _GAP:       3,
-        _MAX_DELAY: 0.35,
+        _MAX_DELAY: 0.50,
 
         _init: function (manager) {
             var W  = manager.width  || 600;
@@ -90,13 +90,16 @@
                 var usedCols   = Math.max(1, Math.floor((chartW * 0.46) / STEP));
                 var usedStartX = midX - usedCols * STEP;
                 var usedStartY = rowCy - (Math.ceil(usedPts.length / usedCols) * STEP) / 2;
+                // Arc control point peaks near the TOP of the canvas for all rows —
+                // this creates the dramatic NYT-style sweep regardless of destination row.
+                var peakY = oy + TOP_PAD * 0.35;
+
                 usedPts.forEach(function (pt, i) {
                     pt.ex = usedStartX + (i % usedCols) * STEP + 2;
                     pt.ey = usedStartY + Math.floor(i / usedCols) * STEP;
-                    // bezier control point: arcs up then lands at destination row
-                    pt.cx    = midX - chartW * 0.18 + (Math.random() - 0.5) * chartW * 0.12;
-                    pt.cy    = oy + TOP_PAD + fi * rowH + rowH * 0.15;
-                    pt.delay = Math.random() * 0.35;
+                    pt.cx    = midX - chartW * 0.22 + (Math.random() - 0.5) * chartW * 0.10;
+                    pt.cy    = peakY;
+                    pt.delay = Math.random() * 0.50;
                 });
 
                 var notCols   = Math.max(1, Math.floor((chartW * 0.46) / STEP));
@@ -105,9 +108,9 @@
                 notPts.forEach(function (pt, i) {
                     pt.ex = notStartX + (i % notCols) * STEP;
                     pt.ey = notStartY + Math.floor(i / notCols) * STEP;
-                    pt.cx    = midX + chartW * 0.18 + (Math.random() - 0.5) * chartW * 0.12;
-                    pt.cy    = oy + TOP_PAD + fi * rowH + rowH * 0.15;
-                    pt.delay = Math.random() * 0.35;
+                    pt.cx    = midX + chartW * 0.22 + (Math.random() - 0.5) * chartW * 0.10;
+                    pt.cy    = peakY;
+                    pt.delay = Math.random() * 0.50;
                 });
             });
 
@@ -175,42 +178,41 @@
             }
             this._prevPressed = pressed;
 
-            // --- Tunnel paths (faint arcs, fade out as cards arrive) ---
-            var tunnelAlpha = Math.max(0, (1 - t * 2.8) * 55);
+            // --- Tunnel paths: fan of arcs from cluster to each row, fade as cards arrive ---
+            var tunnelAlpha = Math.max(0, (1 - t * 1.8) * 80);
             if (tunnelAlpha > 1) {
                 p.noFill();
-                p.strokeWeight(1.5);
+                p.strokeWeight(1.2);
                 var startCx = ox + W * 0.5;
                 var startCy = oy + H * 0.84;
+                // Control point peaks near the top — same as particle arcs
+                var peakY = oy + TOP_PAD * 0.35;
                 FIELDS.forEach(function (fdef, fi) {
-                    var c      = fdef.color;
-                    var rowCy  = oy + TOP_PAD + fi * rowH + rowH / 2;
-                    var ctrlY  = oy + TOP_PAD + fi * rowH + rowH * 0.15;
+                    var c     = fdef.color;
+                    var rowCy = oy + TOP_PAD + fi * rowH + rowH / 2;
 
                     p.stroke(c[0], c[1], c[2], tunnelAlpha);
 
-                    // Used-side arch
-                    var exU = midX - chartW * 0.18;
-                    var cxU = midX - chartW * 0.18;
+                    // Used-side arch (peaks near top, then curves down to row)
+                    var exU = midX - chartW * 0.22;
                     p.beginShape();
-                    for (var s = 0; s <= 1.001; s += 0.04) {
+                    for (var s = 0; s <= 1.001; s += 0.03) {
                         var it = 1 - s;
                         p.vertex(
-                            it*it*startCx + 2*it*s*cxU  + s*s*exU,
-                            it*it*startCy + 2*it*s*ctrlY + s*s*rowCy
+                            it*it*startCx + 2*it*s*exU  + s*s*exU,
+                            it*it*startCy + 2*it*s*peakY + s*s*rowCy
                         );
                     }
                     p.endShape();
 
                     // Not-used-side arch
-                    var exN = midX + chartW * 0.18;
-                    var cxN = midX + chartW * 0.18;
+                    var exN = midX + chartW * 0.22;
                     p.beginShape();
-                    for (var s = 0; s <= 1.001; s += 0.04) {
+                    for (var s = 0; s <= 1.001; s += 0.03) {
                         var it = 1 - s;
                         p.vertex(
-                            it*it*startCx + 2*it*s*cxN  + s*s*exN,
-                            it*it*startCy + 2*it*s*ctrlY + s*s*rowCy
+                            it*it*startCx + 2*it*s*exN  + s*s*exN,
+                            it*it*startCy + 2*it*s*peakY + s*s*rowCy
                         );
                     }
                     p.endShape();
