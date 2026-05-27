@@ -69,36 +69,13 @@ function startP5() {
                 p.background(255);
                 self.draw(p);
 
-                // scroll in/out transition using progress
-                var pr = self.state.progress || 0;
-                var ease = 0.05;
-                var travel = 20;
-                var tx, op;
-                function smoothstep(t) { return t * t * (3 - 2 * t); }
-                if (pr < ease) {
-                    var t = smoothstep(pr / ease);
-                    tx = (1 - t) * travel;
-                    op = t;
-                } else if (pr > 1 - ease) {
-                    var t = smoothstep((pr - (1 - ease)) / ease);
-                    tx = -t * travel;
-                    op = 1 - t;
-                } else {
-                    tx = 0;
-                    op = 1;
-                }
-                p.canvas.style.transform = 'translateY(' + tx.toFixed(2) + 'px)';
-                p.canvas.style.opacity = op.toFixed(3);
-
-                // mirror transition on the active text step
-                var activeStep = document.querySelector('.step[data-active-index="' + (self.state.activeIndex || 0) + '"]');
-                if (activeStep) {
-                    activeStep.style.transform = 'translateY(' + tx.toFixed(2) + 'px)';
-                    activeStep.style.opacity = op.toFixed(3);
-                }
+                // canvas stays completely fixed — no translate or fade
+                p.canvas.style.transform = '';
+                p.canvas.style.opacity = '1';
 
                 var dbg = document.getElementById('debug-state');
                 if (dbg) {
+                    var pr = self.state.progress || 0;
                     dbg.textContent = 'activeIndex: ' + (self.state.activeIndex || 0) + '   progress: ' + pr.toFixed(2);
                 }
             };

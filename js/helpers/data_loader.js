@@ -21,9 +21,14 @@
         });
     }
 
+    function loadJSON(url) {
+        return fetch(url).then(function (r) { return r.json(); });
+    }
+
     window.DataLoader = {
         parseTSV: parseTSV,
-        loadTSV: loadTSV
+        loadTSV: loadTSV,
+        loadJSON: loadJSON
     };
 
     // Shared preprocess helper: normalize rows into the shape sketches expect.

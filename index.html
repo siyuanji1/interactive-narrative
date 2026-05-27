@@ -3,7 +3,7 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IMT 561 Data Visualization: Design and Development</title>
+  <title>IMT 561 Team Harry and Adam Data Visualization: Design and Development</title>
   <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
   <link rel="stylesheet" type="text/css" href="css/style.css" />
 </head>
@@ -11,25 +11,60 @@
 <body>
   <header id="site-header">
     <span id="site-title">Your Project Title</span>
-    <span id="site-course">IMT 561 Data Visualization: Design and Development</span>
+    <span id="site-course">IMT 561 Team Harry and Adam Data Visualization: Design and Development</span>
     <span id="debug-state"></span>
   </header>
   <div class="container">
     <div id='graphic'>
       <div id='sections'>
         <section class="step" data-active-index="0">
-          <div class="title">IMT 561 Final Project</div>
+          <div class="title">IMT 561 Team Harry and Adam Final Project</div>
           Here is a template to work on your final project.<br /><br />
           Your mission is to create an <b>interactive article using P5.js</b>.
         </section>
-        <section class="step" data-active-index="1">
-          <div class="title">Sections</div>
-          Note that each section in index.html corresponds to a section in the
-          scrolling article. You can add or remove sections as needed.
+        <section class="step" data-active-index="1" style="min-height: 280vh;">
+          <div class="title">Does Your Major Predict Your Use?</div>
+          Scroll to watch students sort into "Using AI" and "Not Using AI" — grouped by academic field.
+          <br /><br />
+          <strong>Applied Sciences students lead adoption at 76.5%</strong> — computer science,
+          engineering, and medicine students are building with or studying AI directly.
+          <br /><br />
+          Social sciences, arts, and natural sciences all cluster near 68–70%, suggesting curiosity
+          about ChatGPT cuts across nearly every discipline.
+          <br /><br />
+          Each colored card represents a group of students. Watch them flow into place as you scroll.
         </section>
         <section class="step" data-active-index="2">
           <div class="title">Harry Z</div>
           You don't need to have a visualization for every section. Some sections may simply be text.
+          <div class="title">What Are Students Using AI For?</div>
+          It's not just <em>whether</em> students use AI — it's <em>what</em> they use it for.
+          Applied Sciences students lean heavily on coding assistance. Arts students brainstorm and write.
+          Social Sciences and Natural Sciences students favor research and summarizing.
+          <br /><br />
+          <strong>Compare fields:</strong>
+          <div style="margin-top:10px; line-height:2.4; font-size:15px;">
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="0" checked style="accent-color:rgb(120,120,140); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(80,80,100); font-weight:700;">Overall (all fields)</span>
+            </label>
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="2" style="accent-color:rgb(70,130,210); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(50,100,180); font-weight:600;">Social Sciences</span>
+            </label>
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="3" style="accent-color:rgb(60,170,110); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(40,140,80); font-weight:600;">Applied Sciences</span>
+            </label>
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="1" style="accent-color:rgb(210,90,120); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(180,60,90); font-weight:600;">Arts &amp; Humanities</span>
+            </label>
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="4" style="accent-color:rgb(230,155,50); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(190,120,20); font-weight:600;">Natural Sciences</span>
+            </label>
+          </div>
         </section>
         <section class="step" data-active-index="3">
           <div class="title">More AI, more curiosity</div>
@@ -94,6 +129,7 @@
         </section>
       </div>
       <div id='vis'>
+      <div id='vis' class='vis-visible'>
       </div>
       <div id="extra-space">
       </div>
@@ -118,6 +154,8 @@
   <script src="js/sketches/examples/sketch_grid.js"></script>
 
   <!-- sketches (renderers): UPDATE HERE FOR PROJECT -->
+  <script src="js/sketches/viz/viz_field_sort.js"></script>
+  <script src="js/sketches/viz/viz_radar.js"></script>
   <script src="js/sketches/viz/viz_title.js"></script>
   <script src="js/sketches/viz/viz_progress_color.js"></script>
   <script src="js/sketches/viz/viz_lollipop.js"></script>

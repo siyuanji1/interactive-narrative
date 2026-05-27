@@ -1,6 +1,6 @@
 ## Narrative Visualization (Scrollytelling) Template
 
-A minimal scaffold for scroll-driven p5.js visuals for **IMT 561 Data Visualization: Design and Development**. HTML sections in `index.html` drive the visual state via `js/helpers/sections.js`.
+A minimal scaffold for scroll-driven p5.js visuals for **IMT 561 Team Harry and Adam Data Visualization: Design and Development**. HTML sections in `index.html` drive the visual state via `js/helpers/sections.js`.
 
 **Quick start**
 

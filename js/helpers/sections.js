@@ -92,9 +92,9 @@
                     }
 
                     sc.on('active', function (index) {
-                        // highlight steps (light coupling — just visual text opacity)
+                        // highlight active step, gently dim others (NYT-style)
                         document.querySelectorAll('.step').forEach(function (el, i) {
-                            el.style.opacity = (i === index) ? '1' : '0.1';
+                            el.style.opacity = (i === index) ? '1' : '0.4';
                         });
 
                         // apply layout class from data-layout attribute
