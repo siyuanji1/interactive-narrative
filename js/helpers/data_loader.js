@@ -1,5 +1,5 @@
 // data_loader.js
-// Simple data loading and TSV parsing module. Exposes DataLoader.loadTSV(url)
+// Data loading module — supports TSV and JSON.
 (function () {
     function parseTSV(text) {
         var lines = (text || '').trim().split(/\r?\n/);
@@ -21,14 +21,16 @@
         });
     }
 
+    function loadJSON(url) {
+        return fetch(url).then(function (r) { return r.json(); });
+    }
+
     window.DataLoader = {
         parseTSV: parseTSV,
-        loadTSV: loadTSV
+        loadTSV: loadTSV,
+        loadJSON: loadJSON
     };
 
-    // Shared preprocess helper: normalize rows into the shape sketches expect.
-    // Accepts an array of objects {word, time, filler, min} (as returned by parseTSV)
-    // and returns an array with guaranteed types and an index property.
     window.DataLoader.preprocess = function (data) {
         data = data || [];
         return data.map(function (d, i) {
