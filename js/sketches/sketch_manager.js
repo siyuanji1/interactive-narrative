@@ -75,6 +75,7 @@ function startP5() {
 
                 var dbg = document.getElementById('debug-state');
                 if (dbg) {
+                    var pr = self.state.progress || 0;
                     dbg.textContent = 'activeIndex: ' + (self.state.activeIndex || 0) + '   progress: ' + pr.toFixed(2);
                 }
             };
