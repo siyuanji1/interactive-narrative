@@ -29,6 +29,11 @@
                 return;
             }
 
+            if (ai === 2) {
+                window.VizRadar && window.VizRadar.draw(p, manager, ai, progress);
+                return;
+            }
+
             if (ai === 6  || ai === 9) {
                 window.VizProgressColor.draw(p, manager, ai, progress);
                 return;

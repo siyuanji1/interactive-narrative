@@ -35,11 +35,30 @@
           Each colored card represents a group of students. Watch them flow into place as you scroll.
         </section>
         <section class="step" data-active-index="2">
-          <div class="title">IMT 561 Team Harry and Adam Final Project</div>
-          Here is a template to work on your final project.<br /><br />
-          Your mission is to create an <b>interactive article using P5.js</b>.<br /><br />
-          <b>Sections</b><br />
-          Note that each section in index.html corresponds to a section in the scrolling article. You can add or remove sections as needed.
+          <div class="title">What Are Students Using AI For?</div>
+          It's not just <em>whether</em> students use AI — it's <em>what</em> they use it for.
+          Applied Sciences students lean heavily on coding assistance. Arts students brainstorm and write.
+          Social Sciences and Natural Sciences students favor research and summarizing.
+          <br /><br />
+          <strong>Show / hide fields:</strong>
+          <div style="margin-top:10px; line-height:2.2; font-size:15px;">
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="2" checked style="accent-color:rgb(70,130,210); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(50,100,180); font-weight:600;">Social Sciences</span>
+            </label>
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="3" checked style="accent-color:rgb(60,170,110); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(40,140,80); font-weight:600;">Applied Sciences</span>
+            </label>
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="1" checked style="accent-color:rgb(210,90,120); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(180,60,90); font-weight:600;">Arts &amp; Humanities</span>
+            </label>
+            <label style="cursor:pointer; display:block;">
+              <input type="checkbox" class="field-cb" value="4" checked style="accent-color:rgb(230,155,50); width:15px; height:15px; margin-right:6px; vertical-align:middle;">
+              <span style="color:rgb(190,120,20); font-weight:600;">Natural Sciences</span>
+            </label>
+          </div>
         </section>
         <section class="step" data-active-index="3">
           <div class="title">Narrative</div>
@@ -123,6 +142,7 @@
 
   <!-- sketches (renderers): UPDATE HERE FOR PROJECT -->
   <script src="js/sketches/viz/viz_field_sort.js"></script>
+  <script src="js/sketches/viz/viz_radar.js"></script>
   <script src="js/sketches/viz/viz_title.js"></script>
   <script src="js/sketches/viz/viz_progress_color.js"></script>
   <script src="js/sketches/viz/viz_scatter.js"></script>
