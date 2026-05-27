@@ -3,13 +3,15 @@
 
 var _radarAxes = ['Research', 'Writing', 'Summarizing', 'Coding', 'Brainstorming'];
 
-// Per-field values matching the axis order above (0-1 scale).
-// Based on Q18 Likert averages with domain-knowledge adjustments per field.
+// id=0 is the "Overall" baseline derived directly from Q18 Likert averages
+// (Q18k, Q18a, Q18g, Q18l, Q18e) normalized to 0-1 via (avg - 1) / 4.
+// ids 1-4 are the four academic fields with domain-adjusted estimates.
 var _radarFields = [
-    { id: 1, name: 'Arts & Humanities', r: 210, g: 90,  b: 120, v: [0.37, 0.63, 0.46, 0.11, 0.55] },
-    { id: 2, name: 'Social Sciences',   r: 70,  g: 130, b: 210, v: [0.54, 0.56, 0.51, 0.14, 0.50] },
-    { id: 3, name: 'Applied Sciences',  r: 60,  g: 170, b: 110, v: [0.43, 0.33, 0.37, 0.70, 0.45] },
-    { id: 4, name: 'Natural Sciences',  r: 230, g: 155, b: 50,  v: [0.58, 0.39, 0.43, 0.36, 0.43] }
+    { id: 0, name: 'Overall (all fields)', r: 120, g: 120, b: 140, v: [0.41, 0.41, 0.41, 0.28, 0.44] },
+    { id: 1, name: 'Arts & Humanities',    r: 210, g: 90,  b: 120, v: [0.37, 0.63, 0.46, 0.11, 0.55] },
+    { id: 2, name: 'Social Sciences',      r: 70,  g: 130, b: 210, v: [0.54, 0.56, 0.51, 0.14, 0.50] },
+    { id: 3, name: 'Applied Sciences',     r: 60,  g: 170, b: 110, v: [0.43, 0.33, 0.37, 0.70, 0.45] },
+    { id: 4, name: 'Natural Sciences',     r: 230, g: 155, b: 50,  v: [0.58, 0.39, 0.43, 0.36, 0.43] }
 ];
 
 window.VizRadar = {
