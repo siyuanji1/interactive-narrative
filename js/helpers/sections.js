@@ -13,7 +13,7 @@
             // trigger: where on the viewport a step becomes "active".
             // 'center' => when the step reaches the vertical center of the viewport
             // 'top' => when the step reaches the top (small offset)
-            trigger: 'center',
+            trigger: 'top',
             visHiddenClass: 'vis-hidden',
             visVisibleClass: 'vis-visible'
         };
@@ -94,7 +94,7 @@
                     sc.on('active', function (index) {
                         // highlight active step, gently dim others (NYT-style)
                         document.querySelectorAll('.step').forEach(function (el, i) {
-                            el.style.opacity = (i === index) ? '1' : '0.4';
+                            el.style.opacity = (i === index) ? '1' : '0';
                         });
 
                         // apply layout class from data-layout attribute
