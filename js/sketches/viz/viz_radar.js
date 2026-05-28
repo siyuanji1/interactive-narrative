@@ -3,9 +3,6 @@
 
 var _radarAxes = ['Research', 'Writing', 'Summarizing', 'Coding', 'Brainstorming'];
 
-// id=0 is the "Overall" baseline derived directly from Q18 Likert averages
-// (Q18k, Q18a, Q18g, Q18l, Q18e) normalized to 0-1 via (avg - 1) / 4.
-// ids 1-4 are the four academic fields with domain-adjusted estimates.
 var _radarFields = [
     { id: 0, name: 'Overall (all fields)', r: 120, g: 120, b: 140, v: [0.49, 0.47, 0.45, 0.36, 0.48] },
     { id: 1, name: 'Arts & Humanities',    r: 210, g: 90,  b: 120, v: [0.37, 0.63, 0.46, 0.11, 0.55] },
@@ -21,22 +18,24 @@ window.VizRadar = {
         var ox = manager.offsetX || 0;
         var oy = manager.offsetY || 0;
 
-        var t    = Math.max(0, Math.min(1, progress));
-        var ease = t * t * (3 - 2 * t);
+        var N  = _radarAxes.length;
 
-        var N  = _radarAxes.length;   // 5
-        var cx = ox + W * 0.58;
-        var cy = oy + H * 0.52;
-        var R  = Math.min(W * 0.32, H * 0.35);
+        // Legend takes bottom strip; chart fills the rest
+        var legendH = 28;
+        var legendRows = Math.ceil(_radarFields.length / 3);
+        var legendTop = oy + H - legendH * legendRows - 10;
 
-        // angle for i-th axis: start at top (-PI/2), go clockwise
+        var cx = ox + W * 0.52;
+        var cy = oy + (legendTop - oy) * 0.52 + oy * 0.1;
+        var R  = Math.min(W * 0.36, (legendTop - oy - 50) * 0.46);
+
         function ang(i) {
             return -Math.PI / 2 + (2 * Math.PI * i / N);
         }
 
         var i, k, a, rr;
 
-        // --- grid rings (4 levels: 25 / 50 / 75 / 100 %) ---
+        // --- grid rings ---
         for (var lv = 1; lv <= 4; lv++) {
             rr = R * lv / 4;
             p.noFill();
@@ -49,7 +48,7 @@ window.VizRadar = {
             }
             p.endShape();
             p.noStroke();
-            p.fill(180, 180, 180);
+            p.fill(175, 175, 175);
             p.textAlign(p.CENTER, p.BOTTOM);
             p.textSize(9);
             p.text(String(lv * 25) + '%', cx + 3, cy - rr - 1);
@@ -64,11 +63,11 @@ window.VizRadar = {
             p.noStroke();
             p.fill(40, 40, 40);
             p.textAlign(p.CENTER, p.CENTER);
-            p.textSize(11);
-            p.text(_radarAxes[i], cx + Math.cos(a) * (R + 24), cy + Math.sin(a) * (R + 24));
+            p.textSize(12);
+            p.text(_radarAxes[i], cx + Math.cos(a) * (R + 26), cy + Math.sin(a) * (R + 26));
         }
 
-        // --- read checkbox filter from the HTML left panel ---
+        // --- checkbox filter ---
         var filter  = {};
         var cbs     = document.querySelectorAll('.field-cb');
         for (var ci = 0; ci < cbs.length; ci++) {
@@ -76,42 +75,44 @@ window.VizRadar = {
         }
         var anyFilter = cbs.length > 0;
 
-        // --- field polygons ---
+        // --- field polygons: shown at full size immediately, no progress animation ---
         for (var fi = 0; fi < _radarFields.length; fi++) {
             var fd = _radarFields[fi];
             if (anyFilter && filter[fd.id] === false) { continue; }
 
-            var fillA   = Math.round(40  * ease);
-            var strokeA = Math.round(200 * ease);
-
-            p.fill(fd.r, fd.g, fd.b, fillA);
-            p.stroke(fd.r, fd.g, fd.b, strokeA);
+            p.fill(fd.r, fd.g, fd.b, 45);
+            p.stroke(fd.r, fd.g, fd.b, 210);
             p.strokeWeight(2);
 
             p.beginShape();
             for (i = 0; i < N; i++) {
                 a  = ang(i);
-                rr = R * fd.v[i] * ease;
+                rr = R * fd.v[i];
                 p.vertex(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
             }
             p.endShape(p.CLOSE);
         }
 
-        // --- legend ---
-        var lx = ox + 10;
-        var ly = oy + H * 0.35;
+        // --- legend: 3 columns across the bottom ---
+        var cols   = 3;
+        var colW   = W / cols;
         for (var li = 0; li < _radarFields.length; li++) {
-            var lf     = _radarFields[li];
-            var hidden = anyFilter && filter[lf.id] === false;
-            var swAlpha = hidden ? 60 : 220;
-            var txtCol  = hidden ? 160 : 35;
+            var lf      = _radarFields[li];
+            var hidden  = anyFilter && filter[lf.id] === false;
+            var swAlpha = hidden ? 55 : 220;
+            var txtCol  = hidden ? 170 : 35;
+            var col     = li % cols;
+            var row     = Math.floor(li / cols);
+            var lx      = ox + col * colW + 6;
+            var ly      = legendTop + row * legendH + 4;
+
             p.noStroke();
             p.fill(lf.r, lf.g, lf.b, swAlpha);
-            p.rect(lx, ly + li * 26 - 5, 12, 12, 2);
+            p.rect(lx, ly, 11, 11, 2);
             p.fill(txtCol, txtCol, txtCol);
             p.textAlign(p.LEFT, p.CENTER);
             p.textSize(11);
-            p.text(lf.name, lx + 16, ly + li * 26 + 1);
+            p.text(lf.name, lx + 15, ly + 5);
         }
 
         // --- chart title ---
