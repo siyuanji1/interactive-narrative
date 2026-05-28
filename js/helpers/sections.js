@@ -91,11 +91,36 @@
                         visualController = new VisualControllerCtor({ visSelector: cfg.visSelector, showAt: cfg.showAt });
                     }
 
+                    function pinActiveInner(index) {
+                        var sectionsEl = document.querySelector('#sections');
+                        var r = sectionsEl ? sectionsEl.getBoundingClientRect() : null;
+                        document.querySelectorAll('.step').forEach(function (el, i) {
+                            var inner = el.querySelector('.step-inner');
+                            if (!inner) return;
+                            if (i === index && r) {
+                                inner.classList.add('is-fixed');
+                                inner.style.left  = r.left + 'px';
+                                inner.style.width = r.width + 'px';
+                            } else {
+                                inner.classList.remove('is-fixed');
+                                inner.style.left  = '';
+                                inner.style.width = '';
+                            }
+                        });
+                    }
+
+                    window.addEventListener('resize', function () {
+                        if (sc.currentIndex !== undefined && sc.currentIndex >= 0) {
+                            pinActiveInner(sc.currentIndex);
+                        }
+                    });
+
                     sc.on('active', function (index) {
                         // highlight active step, gently dim others (NYT-style)
                         document.querySelectorAll('.step').forEach(function (el, i) {
                             el.style.opacity = (i === index) ? '1' : '0';
                         });
+                        pinActiveInner(index);
 
                         // apply layout class from data-layout attribute
                         var graphic = document.querySelector('#graphic');
