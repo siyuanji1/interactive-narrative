@@ -1,6 +1,6 @@
 // viz_emotion_line.js
-// Line chart: emotion scores across AI usage levels, one line per emotion
-// Shows: anxiety stays flat, curiosity rises with AI usage
+// Line chart with CI bands: emotion scores across AI usage levels
+// All lines same style (solid), different colors, with shaded CI
 // Active at section index 3
 
 window.VizEmotionLine = (function () {
@@ -8,68 +8,42 @@ window.VizEmotionLine = (function () {
   const USAGE_ORDER = ['Rarely','Occasionally','Moderately','Considerably','Extensively'];
 
   const EMOTIONS = [
-    { key: 'anxious', label: 'Anxious', color: [224, 75,  74],  dash: true  },
-    { key: 'bored',   label: 'Bored',   color: [130,130,130],  dash: true  }, // 稍微加深了一点灰色
-    { key: 'hopeful', label: 'Hopeful', color: [186,117, 23],  dash: false },
-    { key: 'curious', label: 'Curious', color: [ 99,153, 34],  dash: false },
+    { key: 'curious', label: 'Curious', color: [34, 139, 34]   },
+    { key: 'hopeful', label: 'Hopeful', color: [186, 117, 23]  },
+    { key: 'bored',   label: 'Bored',   color: [120, 120, 120] },
+    { key: 'anxious', label: 'Anxious', color: [210, 60,  60]  },
   ];
 
   const FIELDS = ['Applied Sciences','Social Sciences','Arts & Humanities','Natural & Life Sciences'];
 
   let rawData    = null;
-  let aggData    = {};   // aggData[field][usage] = {anxious, curious, hopeful, bored}
+  let aggData    = {};
   let activeField = 'All';
   let margin, plotW, plotH, ox, oy;
   let lastP = null;
   let buttons = [];
 
-  // ── load ─────────────────────────────────────────────────────────────────
   function loadData(callback) {
     if (rawData !== null) { callback(); return; }
-    fetch('data/line_data.json')
+    fetch('data/line_data_ci.json')
       .then(r => r.json())
-      .then(data => {
-        rawData = data;
-        buildAgg();
-        callback();
-      })
-      .catch(err => { console.error('line_data.json failed', err); rawData = []; callback(); });
+      .then(data => { rawData = data; buildAgg(); callback(); })
+      .catch(err => { console.error('line_data_ci.json failed', err); rawData = []; callback(); });
   }
 
   function buildAgg() {
-    aggData = { All: {} };
-    FIELDS.forEach(f => aggData[f] = {});
-
-    // per-field aggregation already done in Python
+    aggData = {};
     rawData.forEach(d => {
-      aggData[d.field][d.usage] = {
-        anxious: d.anxious,
-        curious: d.curious,
-        hopeful: d.hopeful,
-        bored:   d.bored
-      };
-    });
-
-    // "All" = average across fields per usage level
-    USAGE_ORDER.forEach(u => {
-      const vals = { anxious:[], curious:[], hopeful:[], bored:[] };
-      FIELDS.forEach(f => {
-        if (aggData[f][u]) {
-          Object.keys(vals).forEach(k => vals[k].push(aggData[f][u][k]));
-        }
-      });
-      aggData['All'][u] = {};
-      Object.keys(vals).forEach(k => {
-        aggData['All'][u][k] = vals[k].reduce((a,b)=>a+b,0) / vals[k].length;
-      });
+      if (!aggData[d.field]) aggData[d.field] = {};
+      if (!aggData[d.field][d.usage]) aggData[d.field][d.usage] = {};
+      aggData[d.field][d.usage][d.emotion] = { mean: d.mean, ci: d.ci };
     });
   }
 
-  // ── layout ────────────────────────────────────────────────────────────────
   function computeLayout(p) {
-    margin = { top: 60, right: 30, bottom: 90, left: 60 };
+    margin = { top: 60, right: 110, bottom: 90, left: 60 };
     plotW  = p.width  - margin.left - margin.right;
-    plotH  = p.height - margin.top  - margin.bottom - 50; // room for buttons
+    plotH  = p.height - margin.top  - margin.bottom - 50;
     ox     = margin.left;
     oy     = margin.top;
   }
@@ -78,8 +52,7 @@ window.VizEmotionLine = (function () {
     buttons = [];
     const labels = ['All', ...FIELDS];
     const bw = 140, bh = 28, gap = 8;
-    let bx = ox;
-    let by = oy + plotH + margin.bottom - 10;
+    let bx = ox, by = oy + plotH + margin.bottom - 10;
     labels.forEach(label => {
       if (bx + bw > p.width - 10) { bx = ox; by += bh + gap; }
       buttons.push({ label, x: bx, y: by, w: bw, h: bh });
@@ -87,46 +60,37 @@ window.VizEmotionLine = (function () {
     });
   }
 
-  // ── draw ──────────────────────────────────────────────────────────────────
+  function xPos(i) { return ox + (i / (USAGE_ORDER.length - 1)) * plotW; }
+  function yPos(v) { return oy + plotH - ((v - 1) / (5 - 1)) * plotH; }
+
   function drawGrid(p) {
-    p.stroke(0, 0, 0, 25); // 修改：网格线改为微弱的半透明黑色，适应白底
+    p.stroke(0, 0, 0, 20);
     p.strokeWeight(1);
-    for (let v = 1; v <= 5; v++) {
-      const y = oy + plotH - ((v-1)/(5-1)) * plotH;
-      p.line(ox, y, ox+plotW, y);
-    }
-    USAGE_ORDER.forEach((_, i) => {
-      const x = ox + (i/(USAGE_ORDER.length-1)) * plotW;
-      p.line(x, oy, x, oy+plotH);
-    });
+    for (let v = 1; v <= 5; v++) p.line(ox, yPos(v), ox + plotW, yPos(v));
+    USAGE_ORDER.forEach((_, i) => p.line(xPos(i), oy, xPos(i), oy + plotH));
   }
 
   function drawAxes(p) {
     p.noStroke();
     p.textAlign(p.CENTER, p.TOP);
     p.textSize(11);
-    p.fill(60); // 修改：X轴刻度文字改深灰色
-    USAGE_ORDER.forEach((label,i) => {
-      const x = ox + (i/(USAGE_ORDER.length-1)) * plotW;
-      p.text(label, x, oy+plotH+10);
-    });
+    p.fill(60);
+    USAGE_ORDER.forEach((label, i) => p.text(label, xPos(i), oy + plotH + 10));
     p.textSize(12);
-    p.fill(100); // 修改：X轴标题改深灰色
-    p.text('AI usage level (Q15)', ox+plotW/2, oy+plotH+32);
+    p.fill(100);
+    p.text('AI usage level (Q15)', ox + plotW / 2, oy + plotH + 32);
 
     p.textAlign(p.RIGHT, p.CENTER);
     p.textSize(11);
-    p.fill(60); // 修改：Y轴刻度数字改深灰色
-    for (let v = 1; v <= 5; v++) {
-      const y = oy + plotH - ((v-1)/(5-1)) * plotH;
-      p.text(v, ox-8, y);
-    }
+    p.fill(60);
+    for (let v = 1; v <= 5; v++) p.text(v, ox - 8, yPos(v));
+
     p.push();
-    p.translate(12, oy+plotH/2);
+    p.translate(12, oy + plotH / 2);
     p.rotate(-p.HALF_PI);
-    p.textAlign(p.CENTER,p.CENTER);
+    p.textAlign(p.CENTER, p.CENTER);
     p.textSize(11);
-    p.fill(100); // 修改：Y轴标签改深灰色
+    p.fill(100);
     p.text('Emotion score (1–5)', 0, 0);
     p.pop();
   }
@@ -136,77 +100,72 @@ window.VizEmotionLine = (function () {
     if (!data) return;
 
     EMOTIONS.forEach(em => {
-      const [r,g,b] = em.color;
-      p.stroke(r,g,b, em.key === 'anxious' ? 255 : 200);
-      p.strokeWeight(em.key === 'anxious' ? 3 : 2);
-      p.noFill();
+      const [r, g, b] = em.color;
 
-      // dashed simulation
-      const pts = USAGE_ORDER.map((u,i) => {
-        const val = data[u] ? data[u][em.key] : null;
-        if (val === null) return null;
-        return {
-          x: ox + (i/(USAGE_ORDER.length-1)) * plotW,
-          y: oy + plotH - ((val-1)/(5-1)) * plotH
-        };
-      }).filter(Boolean);
-
-      if (em.dash) {
-        for (let i = 0; i < pts.length-1; i++) {
-          drawDashedLine(p, pts[i].x, pts[i].y, pts[i+1].x, pts[i+1].y, 8, 5);
-        }
-      } else {
-        p.beginShape();
-        pts.forEach(pt => p.vertex(pt.x, pt.y));
-        p.endShape();
-      }
-
-      // dots + labels
-      pts.forEach((pt,i) => {
-        p.fill(r,g,b);
-        p.noStroke();
-        p.circle(pt.x, pt.y, 8);
-        if (i === pts.length-1) {
-          p.textAlign(p.LEFT, p.CENTER);
-          p.textSize(11);
-          p.fill(40); // 修改：折线末尾的标签文字改为深色，防白底看不清
-          p.text(em.label + ' ' + (data[USAGE_ORDER[i]][em.key]).toFixed(2), pt.x+8, pt.y);
-        }
+      // CI band
+      const upper = [], lower = [];
+      USAGE_ORDER.forEach((u, i) => {
+        if (!data[u] || !data[u][em.key]) return;
+        const { mean, ci } = data[u][em.key];
+        upper.push({ x: xPos(i), y: yPos(mean - ci) });
+        lower.push({ x: xPos(i), y: yPos(mean + ci) });
       });
+
+      p.noStroke();
+      p.fill(r, g, b, 40);
+      p.beginShape();
+      upper.forEach(pt => p.vertex(pt.x, pt.y));
+      lower.slice().reverse().forEach(pt => p.vertex(pt.x, pt.y));
+      p.endShape(p.CLOSE);
+
+      // main line — all solid
+      p.stroke(r, g, b, 220);
+      p.strokeWeight(2.5);
+      p.noFill();
+      p.beginShape();
+      USAGE_ORDER.forEach((u, i) => {
+        if (!data[u] || !data[u][em.key]) return;
+        p.vertex(xPos(i), yPos(data[u][em.key].mean));
+      });
+      p.endShape();
+
+      // dots
+      USAGE_ORDER.forEach((u, i) => {
+        if (!data[u] || !data[u][em.key]) return;
+        const y = yPos(data[u][em.key].mean);
+        p.fill(r, g, b);
+        p.noStroke();
+        p.circle(xPos(i), y, 8);
+      });
+
+      // right-side label (last point)
+      const lastU = USAGE_ORDER[USAGE_ORDER.length - 1];
+      if (data[lastU] && data[lastU][em.key]) {
+        const lx = xPos(USAGE_ORDER.length - 1) + 10;
+        const ly = yPos(data[lastU][em.key].mean);
+        p.fill(r, g, b);
+        p.noStroke();
+        p.textAlign(p.LEFT, p.CENTER);
+        p.textSize(11);
+        p.text(em.label, lx, ly);
+      }
     });
   }
 
-  function drawDashedLine(p, x1, y1, x2, y2, dashLen, gapLen) {
-    const d = p.dist(x1,y1,x2,y2);
-    const steps = d / (dashLen+gapLen);
-    const dx = (x2-x1)/steps, dy = (y2-y1)/steps;
-    const ddx = dx*dashLen/(dashLen+gapLen), ddy = dy*dashLen/(dashLen+gapLen);
-    let cx=x1, cy=y1;
-    for (let i=0; i<steps; i++) {
-      p.line(cx, cy, cx+ddx, cy+ddy);
-      cx += dx; cy += dy;
-    }
-  }
-
   function drawLegend(p) {
-    const items = EMOTIONS;
     let lx = ox, ly = oy - 30;
-    items.forEach(em => {
-      const [r,g,b] = em.color;
-      p.stroke(r,g,b);
-      p.strokeWeight(2);
-      if (em.dash) {
-        drawDashedLine(p, lx, ly, lx+20, ly, 6, 4);
-      } else {
-        p.line(lx, ly, lx+20, ly);
-      }
-      p.fill(r,g,b);
+    EMOTIONS.forEach(em => {
+      const [r, g, b] = em.color;
+      p.stroke(r, g, b);
+      p.strokeWeight(2.5);
+      p.line(lx, ly, lx + 20, ly);
+      p.fill(r, g, b);
       p.noStroke();
-      p.circle(lx+10, ly, 7);
-      p.fill(50); // 修改：顶部图例文字改深灰色
+      p.circle(lx + 10, ly, 7);
+      p.fill(50);
       p.textSize(11);
       p.textAlign(p.LEFT, p.CENTER);
-      p.text(em.label, lx+24, ly);
+      p.text(em.label, lx + 26, ly);
       lx += p.textWidth(em.label) + 50;
     });
   }
@@ -214,52 +173,43 @@ window.VizEmotionLine = (function () {
   function drawButtons(p) {
     buttons.forEach(b => {
       const active = b.label === activeField;
-      // 修改：激活时深色底（rgb 70），未激活时优雅浅灰底（rgb 245）
-      p.fill(active ? 70 : 245); 
-      p.stroke(active ? 70 : 215);
+      p.fill(active ? 60 : 245);
+      p.stroke(active ? 60 : 200);
       p.strokeWeight(1);
       p.rect(b.x, b.y, b.w, b.h, 4);
-      
-      // 修改：激活时白字，未激活时深灰字
-      p.fill(active ? 255 : 80);
+      p.fill(active ? 255 : 70);
       p.noStroke();
       p.textAlign(p.CENTER, p.CENTER);
       p.textSize(10);
-      p.text(b.label, b.x+b.w/2, b.y+b.h/2);
+      p.text(b.label, b.x + b.w / 2, b.y + b.h / 2);
     });
   }
 
-  // ── public ────────────────────────────────────────────────────────────────
   return {
     draw: function (p, manager, ai, progress) {
-      if (ai !== 3 && ai !== 4) return; // 自动兼容 Section 3 和 4
+      if (ai !== 3) return;
 
       if (rawData === null) {
         loadData(() => { computeLayout(p); buildButtons(p); lastP = p; });
-        p.background(255); // 修改：Loading 背景改纯白
+        p.background(255);
         p.fill(120); p.noStroke();
-        p.textAlign(p.CENTER,p.CENTER); p.textSize(14);
-        p.text('Loading...', p.width/2, p.height/2);
+        p.textAlign(p.CENTER, p.CENTER); p.textSize(14);
+        p.text('Loading...', p.width / 2, p.height / 2);
         return;
       }
 
-      if (lastP !== p) {
-        lastP = p;
-        computeLayout(p);
-        buildButtons(p);
-      }
+      if (lastP !== p) { lastP = p; computeLayout(p); buildButtons(p); }
 
-      // click detection
       if (p.mouseIsPressed) {
         buttons.forEach(b => {
-          if (p.mouseX > b.x && p.mouseX < b.x+b.w &&
-              p.mouseY > b.y && p.mouseY < b.y+b.h) {
+          if (p.mouseX > b.x && p.mouseX < b.x + b.w &&
+              p.mouseY > b.y && p.mouseY < b.y + b.h) {
             activeField = b.label;
           }
         });
       }
 
-      p.background(255); // 修改：主画布背景改纯白
+      p.background(255);
       drawGrid(p);
       drawAxes(p);
       drawLines(p);
