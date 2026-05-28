@@ -30,7 +30,7 @@ window.VizLollipop = (function () {
   }
 
   function drawGrid(p) {
-    p.stroke(255, 255, 255, 15);
+    p.stroke(0, 0, 0, 20); // 修改：网格线改为微弱的半透明黑色
     p.strokeWeight(1);
     for (let v = 1; v <= 5; v += 0.5) {
       const x = ox + ((v - 1) / 4) * plotW;
@@ -38,11 +38,11 @@ window.VizLollipop = (function () {
     }
     // neutral line at 3
     const neutralX = ox + ((3 - 1) / 4) * plotW;
-    p.stroke(255, 255, 255, 50);
+    p.stroke(0, 0, 0, 60); // 修改：基准线改为明显的深半透明黑
     p.strokeWeight(1.5);
     p.line(neutralX, oy - 10, neutralX, oy + plotH + 10);
     p.noStroke();
-    p.fill(120);
+    p.fill(80); // 修改：基准线文字改深灰色
     p.textSize(10);
     p.textAlign(p.CENTER, p.TOP);
     p.text('Neutral (3)', neutralX, oy + plotH + 8);
@@ -51,14 +51,14 @@ window.VizLollipop = (function () {
   function drawAxes(p) {
     p.noStroke();
     p.textSize(11);
-    p.fill(160);
+    p.fill(60); // 修改：刻度数字改深灰色
     p.textAlign(p.CENTER, p.TOP);
     [1, 2, 3, 4, 5].forEach(v => {
       const x = ox + ((v - 1) / 4) * plotW;
       p.text(v, x, oy + plotH + 28);
     });
     p.textSize(12);
-    p.fill(120);
+    p.fill(100); // 修改：X轴标题改深灰色
     p.textAlign(p.CENTER, p.TOP);
     p.text('"ChatGPT can improve my..." (1=Strongly disagree → 5=Strongly agree)', ox + plotW / 2, oy + plotH + 46);
   }
@@ -86,7 +86,7 @@ window.VizLollipop = (function () {
       p.circle(x, y, isHov ? 18 : 13);
 
       // skill label
-      p.fill(isHov ? 255 : 180);
+      p.fill(isHov ? 0 : 50);
       p.textSize(12);
       p.textAlign(p.RIGHT, p.CENTER);
       p.text(d.skill, ox - 10, y);
@@ -109,7 +109,7 @@ window.VizLollipop = (function () {
       const [r,g,b] = item.color;
       p.fill(r,g,b); p.noStroke();
       p.circle(lx + 5, ly, 10);
-      p.fill(180);
+      p.fill(60);
       p.textSize(11);
       p.textAlign(p.LEFT, p.CENTER);
       p.text(item.label, lx + 14, ly);
@@ -141,16 +141,18 @@ window.VizLollipop = (function () {
     if (tx + tw > p.width - 10) tx = x - tw - 14;
     if (ty < 4) ty = 4;
 
-    p.fill(30, 30, 36, 230);
-    p.stroke(80); p.strokeWeight(1);
+
+    p.fill(248, 248, 250, 240);
+    p.stroke(200); p.strokeWeight(1);
     p.rect(tx, ty, tw, th, 6);
     p.noStroke();
     p.textAlign(p.LEFT, p.TOP);
-    p.textSize(12); p.fill(255);
+    
+    p.textSize(12); p.fill(40); // 
     p.text(d.skill, tx + pad, ty + pad);
     p.textSize(11); p.fill(r,g,b);
     p.text('Score: ' + d.score.toFixed(2) + ' / 5  (' + (d.type === 'productivity' ? 'productivity' : 'thinking') + ')', tx + pad, ty + pad + 18);
-    p.fill(160);
+    p.fill(110); // 
     p.text('Based on ' + (d.type === 'productivity' ? 'Q26' : 'Q29') + ' · n=15,734', tx + pad, ty + pad + 32);
   }
 
@@ -160,7 +162,7 @@ window.VizLollipop = (function () {
 
       if (rawData === null) {
         loadData(() => { computeLayout(p); lastP = p; });
-        p.background(18,18,22);
+        p.background(255); // 修改：Loading 背景改纯白
         p.fill(120); p.noStroke();
         p.textAlign(p.CENTER, p.CENTER); p.textSize(14);
         p.text('Loading...', p.width/2, p.height/2);
@@ -171,7 +173,7 @@ window.VizLollipop = (function () {
 
       checkHover(p);
 
-      p.background(18,18,22);
+      p.background(255); 
       drawGrid(p);
       drawAxes(p);
       drawLollipops(p);
