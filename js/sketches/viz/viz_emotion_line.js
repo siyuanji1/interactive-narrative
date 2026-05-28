@@ -1,235 +1,165 @@
-// viz_emotion_line.js
-// Line chart: emotion scores across AI usage levels
-// CI bands only on Curious and Anxious for clear contrast
-// Active at section index 3
-
 window.VizEmotionLine = (function () {
 
   const USAGE_ORDER = ['Rarely','Occasionally','Moderately','Considerably','Extensively'];
-
-  const EMOTIONS = [
-    { key: 'curious', label: 'Curious', color: [34, 139, 34],   showBand: true  },
-    { key: 'hopeful', label: 'Hopeful', color: [186, 117, 23],  showBand: false },
-    { key: 'bored',   label: 'Bored',   color: [160, 160, 160], showBand: false },
-    { key: 'anxious', label: 'Anxious', color: [210, 60,  60],  showBand: true  },
-  ];
-
   const FIELDS = ['Applied Sciences','Social Sciences','Arts & Humanities','Natural & Life Sciences'];
 
-  let rawData    = null;
-  let aggData    = {};
-  let activeField = 'All';
-  let margin, plotW, plotH, ox, oy;
-  let lastP = null;
-  let buttons = [];
+  let rawData = null, aggData = {}, activeField = 'All';
+  let margin, plotW, plotH, ox, oy, lastP = null, buttons = [];
+  const minPct = -5, maxPct = 35;
 
-  function loadData(callback) {
-    if (rawData !== null) { callback(); return; }
-    fetch('data/line_data_ci.json')
-      .then(r => r.json())
-      .then(data => { rawData = data; buildAgg(); callback(); })
-      .catch(err => { console.error('line_data_ci.json failed', err); rawData = []; callback(); });
+  function loadData(cb) {
+    if (rawData !== null) { cb(); return; }
+    fetch('data/line_pct_data.json').then(r=>r.json()).then(d=>{rawData=d;buildAgg();cb();}).catch(()=>{rawData=[];cb();});
   }
 
   function buildAgg() {
     aggData = {};
-    rawData.forEach(d => {
-      if (!aggData[d.field]) aggData[d.field] = {};
-      if (!aggData[d.field][d.usage]) aggData[d.field][d.usage] = {};
-      aggData[d.field][d.usage][d.emotion] = { mean: d.mean, ci: d.ci };
+    rawData.forEach(d=>{
+      if(!aggData[d.field]) aggData[d.field]={};
+      if(!aggData[d.field][d.usage]) aggData[d.field][d.usage]={};
+      aggData[d.field][d.usage][d.emotion]=d.pct_change;
     });
   }
 
   function computeLayout(p) {
-    margin = { top: 60, right: 110, bottom: 90, left: 60 };
-    plotW  = p.width  - margin.left - margin.right;
-    plotH  = p.height - margin.top  - margin.bottom - 50;
-    ox     = margin.left;
-    oy     = margin.top;
+    margin={top:60,right:140,bottom:80,left:75};
+    plotW=p.width-margin.left-margin.right;
+    plotH=p.height-margin.top-margin.bottom-50;
+    ox=margin.left; oy=margin.top;
   }
 
   function buildButtons(p) {
-    buttons = [];
-    const labels = ['All', ...FIELDS];
-    const bw = 140, bh = 28, gap = 8;
-    let bx = ox, by = oy + plotH + margin.bottom - 10;
-    labels.forEach(label => {
-      if (bx + bw > p.width - 10) { bx = ox; by += bh + gap; }
-      buttons.push({ label, x: bx, y: by, w: bw, h: bh });
-      bx += bw + gap;
+    buttons=[];
+    const labels=['All',...FIELDS], bw=140,bh=28,gap=8;
+    let bx=ox, by=oy+plotH+margin.bottom-10;
+    labels.forEach(label=>{
+      if(bx+bw>p.width-10){bx=ox;by+=bh+gap;}
+      buttons.push({label,x:bx,y:by,w:bw,h:bh}); bx+=bw+gap;
     });
   }
 
-  function xPos(i) { return ox + (i / (USAGE_ORDER.length - 1)) * plotW; }
-  function yPos(v) { return oy + plotH - ((v - 1) / (5 - 1)) * plotH; }
+  function xPos(i){return ox+(i/(USAGE_ORDER.length-1))*plotW;}
+  function yPos(v){return oy+plotH-((v-minPct)/(maxPct-minPct))*plotH;}
 
   function drawGrid(p) {
-    p.stroke(0, 0, 0, 20);
-    p.strokeWeight(1);
-    for (let v = 1; v <= 5; v++) p.line(ox, yPos(v), ox + plotW, yPos(v));
-    USAGE_ORDER.forEach((_, i) => p.line(xPos(i), oy, xPos(i), oy + plotH));
+    [0,10,20,30].forEach(v=>{
+      p.stroke(v===0?80:0, v===0?80:0, v===0?80:0, v===0?160:22);
+      p.strokeWeight(v===0?2:1);
+      p.line(ox,yPos(v),ox+plotW,yPos(v));
+    });
+    USAGE_ORDER.forEach((_,i)=>{
+      p.stroke(0,0,0,18); p.strokeWeight(1);
+      p.line(xPos(i),oy,xPos(i),oy+plotH);
+    });
+  }
+
+  function drawBand(p, data, key, color) {
+    const [r,g,b] = color;
+    // CI band using half-SD from line_pct_data (we'll use ±5% as visual band)
+    const bandW = 5; // visual width in % units
+    p.noStroke(); p.fill(r,g,b,35);
+    p.beginShape();
+    USAGE_ORDER.forEach((u,i)=>{
+      const v=(data[u]&&data[u][key]!=null)?data[u][key]:0;
+      p.vertex(xPos(i), yPos(v+bandW));
+    });
+    USAGE_ORDER.slice().reverse().forEach((u,i)=>{
+      const v=(data[u]&&data[u][key]!=null)?data[u][key]:0;
+      p.vertex(xPos(USAGE_ORDER.length-1-i), yPos(v-bandW));
+    });
+    p.endShape(p.CLOSE);
+  }
+
+  function drawLine(p, data, key, color, label, labelNote, labelOffsetY) {
+    const [r,g,b] = color;
+    // band
+    drawBand(p, data, key, color);
+    // line
+    p.stroke(r,g,b,230); p.strokeWeight(3); p.noFill();
+    p.beginShape();
+    USAGE_ORDER.forEach((u,i)=>{
+      const v=data[u]?data[u][key]:null;
+      if(v==null) return;
+      p.vertex(xPos(i),yPos(v));
+    });
+    p.endShape();
+    // dots
+    USAGE_ORDER.forEach((u,i)=>{
+      const v=data[u]?data[u][key]:null;
+      if(v==null) return;
+      p.fill(r,g,b); p.noStroke();
+      p.circle(xPos(i),yPos(v),10);
+    });
+    // right label
+    const lastU=USAGE_ORDER[USAGE_ORDER.length-1];
+    const lastV=data[lastU]?data[lastU][key]:null;
+    if(lastV!=null){
+      const lx=xPos(USAGE_ORDER.length-1)+14;
+      const ly=yPos(lastV)+labelOffsetY;
+      const actualY=yPos(lastV);
+      if(Math.abs(ly-actualY)>3){
+        p.stroke(r,g,b,80); p.strokeWeight(1);
+        p.line(xPos(USAGE_ORDER.length-1)+6,actualY,lx,ly);
+      }
+      p.fill(r,g,b); p.noStroke();
+      p.textAlign(p.LEFT,p.CENTER); p.textSize(13);
+      p.text(label+' '+(lastV>=0?'+':'')+lastV.toFixed(0)+'%',lx,ly);
+      p.textSize(10); p.fill(r,g,b,160); p.textStyle(p.ITALIC);
+      p.text(labelNote,lx,ly+16); p.textStyle(p.NORMAL);
+    }
   }
 
   function drawAxes(p) {
     p.noStroke();
-    p.textAlign(p.CENTER, p.TOP);
-    p.textSize(11);
-    p.fill(60);
-    USAGE_ORDER.forEach((label, i) => p.text(label, xPos(i), oy + plotH + 10));
-    p.textSize(12);
-    p.fill(100);
-    p.text('AI usage level (Q15)', ox + plotW / 2, oy + plotH + 32);
-
-    p.textAlign(p.RIGHT, p.CENTER);
-    p.textSize(11);
-    p.fill(60);
-    for (let v = 1; v <= 5; v++) p.text(v, ox - 8, yPos(v));
-
-    p.push();
-    p.translate(12, oy + plotH / 2);
-    p.rotate(-p.HALF_PI);
-    p.textAlign(p.CENTER, p.CENTER);
-    p.textSize(11);
-    p.fill(100);
-    p.text('Emotion score (1–5)', 0, 0);
-    p.pop();
-  }
-
-  function drawLines(p) {
-    const data = aggData[activeField];
-    if (!data) return;
-
-    // Draw bands first (behind lines)
-    EMOTIONS.forEach(em => {
-      if (!em.showBand) return;
-      const [r, g, b] = em.color;
-
-      const upper = [], lower = [];
-      USAGE_ORDER.forEach((u, i) => {
-        if (!data[u] || !data[u][em.key]) return;
-        const { mean, ci } = data[u][em.key];
-        upper.push({ x: xPos(i), y: yPos(mean + ci) });
-        lower.push({ x: xPos(i), y: yPos(mean - ci) });
-      });
-
-      p.noStroke();
-      p.fill(r, g, b, 55);
-      p.beginShape();
-      upper.forEach(pt => p.vertex(pt.x, pt.y));
-      lower.slice().reverse().forEach(pt => p.vertex(pt.x, pt.y));
-      p.endShape(p.CLOSE);
+    [0,10,20,30].forEach(v=>{
+      p.fill(80); p.textSize(10); p.textAlign(p.RIGHT,p.CENTER);
+      p.text((v>0?'+':'')+v+'%',ox-8,yPos(v));
     });
-
-    // Draw all lines
-    EMOTIONS.forEach(em => {
-      const [r, g, b] = em.color;
-      const lineWeight = em.showBand ? 3 : 1.5;
-      const alpha = em.showBand ? 240 : 150;
-
-      p.stroke(r, g, b, alpha);
-      p.strokeWeight(lineWeight);
-      p.noFill();
-      p.beginShape();
-      USAGE_ORDER.forEach((u, i) => {
-        if (!data[u] || !data[u][em.key]) return;
-        p.vertex(xPos(i), yPos(data[u][em.key].mean));
-      });
-      p.endShape();
-
-      // dots
-      USAGE_ORDER.forEach((u, i) => {
-        if (!data[u] || !data[u][em.key]) return;
-        const y = yPos(data[u][em.key].mean);
-        p.fill(r, g, b);
-        p.noStroke();
-        p.circle(xPos(i), y, em.showBand ? 9 : 6);
-      });
-
-      // right-side label
-      const lastU = USAGE_ORDER[USAGE_ORDER.length - 1];
-      if (data[lastU] && data[lastU][em.key]) {
-        const lx = xPos(USAGE_ORDER.length - 1) + 12;
-        const ly = yPos(data[lastU][em.key].mean);
-        p.fill(r, g, b);
-        p.noStroke();
-        p.textAlign(p.LEFT, p.CENTER);
-        p.textSize(12);
-        p.textStyle(em.showBand ? p.BOLD : p.NORMAL);
-        p.text(em.label, lx, ly);
-        p.textStyle(p.NORMAL);
-      }
-    });
-  }
-
-  function drawLegend(p) {
-    let lx = ox, ly = oy - 30;
-    EMOTIONS.forEach(em => {
-      const [r, g, b] = em.color;
-
-      if (em.showBand) {
-        p.noStroke();
-        p.fill(r, g, b, 55);
-        p.rect(lx, ly - 6, 20, 12, 2);
-      }
-
-      p.stroke(r, g, b);
-      p.strokeWeight(em.showBand ? 3 : 1.5);
-      p.line(lx, ly, lx + 20, ly);
-      p.fill(r, g, b);
-      p.noStroke();
-      p.circle(lx + 10, ly, 6);
-      p.fill(50);
-      p.textSize(11);
-      p.textAlign(p.LEFT, p.CENTER);
-      p.text(em.label, lx + 26, ly);
-      lx += p.textWidth(em.label) + 50;
-    });
+    p.push(); p.translate(14,oy+plotH/2); p.rotate(-p.HALF_PI);
+    p.textAlign(p.CENTER,p.CENTER); p.textSize(11); p.fill(100);
+    p.text('Change from baseline (Rarely = 0%)',0,0); p.pop();
+    p.textAlign(p.CENTER,p.TOP); p.textSize(11); p.fill(60);
+    USAGE_ORDER.forEach((l,i)=>p.text(l,xPos(i),oy+plotH+10));
+    p.textSize(12); p.fill(100);
+    p.text('AI usage level (Q15)',ox+plotW/2,oy+plotH+32);
+    p.fill(80); p.textSize(10); p.textAlign(p.LEFT,p.CENTER);
+    p.text('← starting point',ox+4,yPos(0)-10);
   }
 
   function drawButtons(p) {
-    buttons.forEach(b => {
-      const active = b.label === activeField;
-      p.fill(active ? 60 : 245);
-      p.stroke(active ? 60 : 200);
-      p.strokeWeight(1);
-      p.rect(b.x, b.y, b.w, b.h, 4);
-      p.fill(active ? 255 : 70);
-      p.noStroke();
-      p.textAlign(p.CENTER, p.CENTER);
-      p.textSize(10);
-      p.text(b.label, b.x + b.w / 2, b.y + b.h / 2);
+    buttons.forEach(b=>{
+      const active=b.label===activeField;
+      p.fill(active?60:245); p.stroke(active?60:200); p.strokeWeight(1);
+      p.rect(b.x,b.y,b.w,b.h,4);
+      p.fill(active?255:70); p.noStroke();
+      p.textAlign(p.CENTER,p.CENTER); p.textSize(10);
+      p.text(b.label,b.x+b.w/2,b.y+b.h/2);
     });
   }
 
   return {
-    draw: function (p, manager, ai, progress) {
-      if (ai !== 3) return;
-
-      if (rawData === null) {
-        loadData(() => { computeLayout(p); buildButtons(p); lastP = p; });
-        p.background(255);
-        p.fill(120); p.noStroke();
-        p.textAlign(p.CENTER, p.CENTER); p.textSize(14);
-        p.text('Loading...', p.width / 2, p.height / 2);
-        return;
+    draw: function(p,manager,ai,progress) {
+      if(ai!==3) return;
+      if(rawData===null){
+        loadData(()=>{computeLayout(p);buildButtons(p);lastP=p;});
+        p.background(255); p.fill(120); p.noStroke();
+        p.textAlign(p.CENTER,p.CENTER); p.textSize(14);
+        p.text('Loading...',p.width/2,p.height/2); return;
       }
-
-      if (lastP !== p) { lastP = p; computeLayout(p); buildButtons(p); }
-
-      if (p.mouseIsPressed) {
-        buttons.forEach(b => {
-          if (p.mouseX > b.x && p.mouseX < b.x + b.w &&
-              p.mouseY > b.y && p.mouseY < b.y + b.h) {
-            activeField = b.label;
-          }
+      if(lastP!==p){lastP=p;computeLayout(p);buildButtons(p);}
+      if(p.mouseIsPressed){
+        buttons.forEach(b=>{
+          if(p.mouseX>b.x&&p.mouseX<b.x+b.w&&p.mouseY>b.y&&p.mouseY<b.y+b.h) activeField=b.label;
         });
       }
-
+      const data=aggData[activeField];
       p.background(255);
       drawGrid(p);
       drawAxes(p);
-      drawLines(p);
-      drawLegend(p);
+      if(data){
+        drawLine(p,data,'curious',[34,139,34],'Curious','rose strongly',-20);
+        drawLine(p,data,'anxious',[210,60,60],'Anxious','barely moved',20);
+      }
       drawButtons(p);
     }
   };
