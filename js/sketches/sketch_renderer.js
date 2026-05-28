@@ -46,6 +46,11 @@
                 window.VizLollipop && window.VizLollipop.draw(p, manager, ai, progress);
                 return;
             }
+
+            if (ai === 6) {
+                window.VizJobConfidence && window.VizJobConfidence.draw(p, manager, ai, progress);
+                return;
+            }
         }
     };
 })();
