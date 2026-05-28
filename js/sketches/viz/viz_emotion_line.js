@@ -9,7 +9,7 @@ window.VizEmotionLine = (function () {
 
   const EMOTIONS = [
     { key: 'anxious', label: 'Anxious', color: [224, 75,  74],  dash: true  },
-    { key: 'bored',   label: 'Bored',   color: [150,150,150],  dash: true  },
+    { key: 'bored',   label: 'Bored',   color: [130,130,130],  dash: true  }, // 稍微加深了一点灰色
     { key: 'hopeful', label: 'Hopeful', color: [186,117, 23],  dash: false },
     { key: 'curious', label: 'Curious', color: [ 99,153, 34],  dash: false },
   ];
@@ -89,7 +89,7 @@ window.VizEmotionLine = (function () {
 
   // ── draw ──────────────────────────────────────────────────────────────────
   function drawGrid(p) {
-    p.stroke(255,255,255,18);
+    p.stroke(0, 0, 0, 25); // 修改：网格线改为微弱的半透明黑色，适应白底
     p.strokeWeight(1);
     for (let v = 1; v <= 5; v++) {
       const y = oy + plotH - ((v-1)/(5-1)) * plotH;
@@ -105,18 +105,18 @@ window.VizEmotionLine = (function () {
     p.noStroke();
     p.textAlign(p.CENTER, p.TOP);
     p.textSize(11);
-    p.fill(160);
+    p.fill(60); // 修改：X轴刻度文字改深灰色
     USAGE_ORDER.forEach((label,i) => {
       const x = ox + (i/(USAGE_ORDER.length-1)) * plotW;
       p.text(label, x, oy+plotH+10);
     });
     p.textSize(12);
-    p.fill(120);
+    p.fill(100); // 修改：X轴标题改深灰色
     p.text('AI usage level (Q15)', ox+plotW/2, oy+plotH+32);
 
     p.textAlign(p.RIGHT, p.CENTER);
     p.textSize(11);
-    p.fill(160);
+    p.fill(60); // 修改：Y轴刻度数字改深灰色
     for (let v = 1; v <= 5; v++) {
       const y = oy + plotH - ((v-1)/(5-1)) * plotH;
       p.text(v, ox-8, y);
@@ -126,7 +126,7 @@ window.VizEmotionLine = (function () {
     p.rotate(-p.HALF_PI);
     p.textAlign(p.CENTER,p.CENTER);
     p.textSize(11);
-    p.fill(120);
+    p.fill(100); // 修改：Y轴标签改深灰色
     p.text('Emotion score (1–5)', 0, 0);
     p.pop();
   }
@@ -169,6 +169,7 @@ window.VizEmotionLine = (function () {
         if (i === pts.length-1) {
           p.textAlign(p.LEFT, p.CENTER);
           p.textSize(11);
+          p.fill(40); // 修改：折线末尾的标签文字改为深色，防白底看不清
           p.text(em.label + ' ' + (data[USAGE_ORDER[i]][em.key]).toFixed(2), pt.x+8, pt.y);
         }
       });
@@ -202,7 +203,7 @@ window.VizEmotionLine = (function () {
       p.fill(r,g,b);
       p.noStroke();
       p.circle(lx+10, ly, 7);
-      p.fill(200);
+      p.fill(50); // 修改：顶部图例文字改深灰色
       p.textSize(11);
       p.textAlign(p.LEFT, p.CENTER);
       p.text(em.label, lx+24, ly);
@@ -213,11 +214,14 @@ window.VizEmotionLine = (function () {
   function drawButtons(p) {
     buttons.forEach(b => {
       const active = b.label === activeField;
-      p.fill(active ? 255 : 50);
-      p.stroke(active ? 255 : 100);
+      // 修改：激活时深色底（rgb 70），未激活时优雅浅灰底（rgb 245）
+      p.fill(active ? 70 : 245); 
+      p.stroke(active ? 70 : 215);
       p.strokeWeight(1);
       p.rect(b.x, b.y, b.w, b.h, 4);
-      p.fill(active ? 0 : 180);
+      
+      // 修改：激活时白字，未激活时深灰字
+      p.fill(active ? 255 : 80);
       p.noStroke();
       p.textAlign(p.CENTER, p.CENTER);
       p.textSize(10);
@@ -228,11 +232,11 @@ window.VizEmotionLine = (function () {
   // ── public ────────────────────────────────────────────────────────────────
   return {
     draw: function (p, manager, ai, progress) {
-      if (ai !== 3) return;
+      if (ai !== 3 && ai !== 4) return; // 自动兼容 Section 3 和 4
 
       if (rawData === null) {
         loadData(() => { computeLayout(p); buildButtons(p); lastP = p; });
-        p.background(18,18,22);
+        p.background(255); // 修改：Loading 背景改纯白
         p.fill(120); p.noStroke();
         p.textAlign(p.CENTER,p.CENTER); p.textSize(14);
         p.text('Loading...', p.width/2, p.height/2);
@@ -255,7 +259,7 @@ window.VizEmotionLine = (function () {
         });
       }
 
-      p.background(18,18,22);
+      p.background(255); // 修改：主画布背景改纯白
       drawGrid(p);
       drawAxes(p);
       drawLines(p);
