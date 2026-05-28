@@ -117,9 +117,15 @@
 }
 
 .step-inner {
-  position: sticky;
-  top: 70px;
   padding-bottom: 20px;
+}
+
+.step-inner.is-fixed {
+  position: fixed;
+  top: 70px;
+  z-index: 91;
+  overflow-y: auto;
+  max-height: calc(100vh - 80px);
 }
 
 #sections .title {
