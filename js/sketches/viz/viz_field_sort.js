@@ -1,5 +1,6 @@
 // viz_field_sort.js
 // NYT-style: cards cluster at bottom, arc through bezier tunnels into field rows
+// Cards grouped in sets of 5 (like tally marks) for easy counting
 (function () {
     'use strict';
 
@@ -7,7 +8,7 @@
         _particles: null,
         _initW: null,
         _initH: null,
-        _filter: null,       // null | 'used' | 'notused'
+        _filter: null,
         _prevPressed: false,
         _btns: null,
 
@@ -18,8 +19,10 @@
             { id: 4, color: [230, 155, 50],  short: 'Natural Sciences'  }
         ],
 
-        _CARD:      7,
+        _CARD:      9,   // bigger cards
         _GAP:       3,
+        _GRP:       5,   // cards per tally group
+        _GGAP:      6,   // extra gap between groups
         _MAX_DELAY: 0.50,
 
         _init: function (manager) {
@@ -32,10 +35,15 @@
 
             var fu     = manager._surveyData.field_usage;
             var FIELDS = this._FIELDS;
-            var STEP   = this._CARD + this._GAP;
+            var CARD   = this._CARD;
+            var GAP    = this._GAP;
+            var STEP   = CARD + GAP;
+            var GRP    = this._GRP;
+            var GGAP   = this._GGAP;
+            var GRP_W  = GRP * STEP + GGAP; // width of one tally group
 
-            // Build ~120 proportional particles
-            var TOTAL      = 120;
+            // More particles for richer representation
+            var TOTAL      = 200;
             var grandTotal = [1, 2, 3, 4].reduce(function (s, id) {
                 return s + (fu[id] ? fu[id].total : 0);
             }, 0);
@@ -44,14 +52,16 @@
             FIELDS.forEach(function (fdef) {
                 var fd = fu[fdef.id];
                 if (!fd) return;
-                var n     = Math.max(6, Math.round(TOTAL * fd.total / grandTotal));
-                var nUsed = Math.round(n * fd.pct_used / 100);
+                var n     = Math.max(10, Math.round(TOTAL * fd.total / grandTotal));
+                // Round n to nearest multiple of 5 for clean groups
+                n = Math.round(n / 5) * 5;
+                var nUsed = Math.round(n * fd.pct_used / 100 / 5) * 5;
                 var nNot  = n - nUsed;
                 for (var i = 0; i < nUsed; i++) particles.push({ field: fdef.id, used: true,  color: fdef.color });
                 for (var i = 0; i < nNot;  i++) particles.push({ field: fdef.id, used: false, color: fdef.color });
             });
 
-            // Shuffle for a mixed cluster start
+            // Shuffle for mixed cluster start
             for (var i = particles.length - 1; i > 0; i--) {
                 var j   = Math.floor(Math.random() * (i + 1));
                 var tmp = particles[i]; particles[i] = particles[j]; particles[j] = tmp;
@@ -67,7 +77,17 @@
             var midX    = chartL + chartW * 0.5;
             var rowH    = chartH / FIELDS.length;
 
-            // Start: phyllotaxis spiral at bottom-center
+            // Groups per row on each side
+            var sideW    = chartW * 0.45;
+            var grpsPerRow = Math.max(1, Math.floor((sideW + GGAP) / GRP_W));
+            var cpr        = grpsPerRow * GRP; // cards per row
+            var rowW       = grpsPerRow * GRP * STEP + (grpsPerRow - 1) * GGAP;
+
+            // Used side ends at midX; not-used side starts at midX
+            var usedStartXBase = midX - rowW - 4;
+            var notStartXBase  = midX + 4;
+
+            // Phyllotaxis spiral start at bottom-center
             var startCx = ox + W * 0.5;
             var startCy = oy + H * 0.84;
             var maxR    = Math.min(W, H) * 0.11;
@@ -81,46 +101,65 @@
                 pt.y  = pt.sy;
             });
 
-            // End positions: rows by field, used on left of midX, not-used on right
+            var peakY = oy + TOP_PAD * 0.35;
+
+            // End positions — both groups start at the SAME y (first rows aligned)
             FIELDS.forEach(function (fdef, fi) {
                 var rowCy   = oy + TOP_PAD + fi * rowH + rowH / 2;
                 var usedPts = particles.filter(function (pt) { return pt.field === fdef.id && pt.used;  });
                 var notPts  = particles.filter(function (pt) { return pt.field === fdef.id && !pt.used; });
 
-                var usedCols   = Math.max(1, Math.floor((chartW * 0.46) / STEP));
-                var usedStartX = midX - usedCols * STEP;
-                var usedStartY = rowCy - (Math.ceil(usedPts.length / usedCols) * STEP) / 2;
-                // Arc control point peaks near the TOP of the canvas for all rows —
-                // this creates the dramatic NYT-style sweep regardless of destination row.
-                var peakY = oy + TOP_PAD * 0.35;
+                var usedRows = Math.ceil(usedPts.length / cpr);
+                var notRows  = Math.ceil(notPts.length  / cpr);
+                var maxRows  = Math.max(usedRows, notRows, 1);
+
+                // Same startY for both groups so row 1 aligns horizontally
+                var startY = rowCy - (maxRows * STEP) / 2;
+
+                function place(pts, startX) {
+                    pts.forEach(function (pt, i) {
+                        var row      = Math.floor(i / cpr);
+                        var posInRow = i % cpr;
+                        var grpInRow = Math.floor(posInRow / GRP);
+                        var posInGrp = posInRow % GRP;
+                        pt.ex    = startX + grpInRow * GRP_W + posInGrp * STEP;
+                        pt.ey    = startY + row * STEP;
+                        pt.delay = Math.random() * 0.50;
+                    });
+                }
 
                 usedPts.forEach(function (pt, i) {
-                    pt.ex = usedStartX + (i % usedCols) * STEP + 2;
-                    pt.ey = usedStartY + Math.floor(i / usedCols) * STEP;
+                    var row      = Math.floor(i / cpr);
+                    var posInRow = i % cpr;
+                    var grpInRow = Math.floor(posInRow / GRP);
+                    var posInGrp = posInRow % GRP;
+                    pt.ex = usedStartXBase + grpInRow * GRP_W + posInGrp * STEP;
+                    pt.ey = startY + row * STEP;
                     pt.cx    = midX - chartW * 0.22 + (Math.random() - 0.5) * chartW * 0.10;
                     pt.cy    = peakY;
                     pt.delay = Math.random() * 0.50;
                 });
 
-                var notCols   = Math.max(1, Math.floor((chartW * 0.46) / STEP));
-                var notStartX = midX + 4;
-                var notStartY = rowCy - (Math.ceil(notPts.length / notCols) * STEP) / 2;
                 notPts.forEach(function (pt, i) {
-                    pt.ex = notStartX + (i % notCols) * STEP;
-                    pt.ey = notStartY + Math.floor(i / notCols) * STEP;
+                    var row      = Math.floor(i / cpr);
+                    var posInRow = i % cpr;
+                    var grpInRow = Math.floor(posInRow / GRP);
+                    var posInGrp = posInRow % GRP;
+                    pt.ex = notStartXBase + grpInRow * GRP_W + posInGrp * STEP;
+                    pt.ey = startY + row * STEP;
                     pt.cx    = midX + chartW * 0.22 + (Math.random() - 0.5) * chartW * 0.10;
                     pt.cy    = peakY;
                     pt.delay = Math.random() * 0.50;
                 });
             });
 
-            // Button positions (sit just above the chart area)
-            var btnW    = 100;
-            var btnH    = 24;
-            var usedCX  = chartL + chartW * 0.25;
-            var notCX   = midX   + chartW * 0.25;
-            var btnY    = oy + TOP_PAD - btnH - 4;
-            this._btns  = {
+            // Button positions above chart
+            var btnW   = 108;
+            var btnH   = 24;
+            var usedCX = midX - sideW * 0.5;
+            var notCX  = midX + sideW * 0.5;
+            var btnY   = oy + TOP_PAD - btnH - 4;
+            this._btns = {
                 used:    { x: usedCX - btnW / 2, y: btnY, w: btnW, h: btnH },
                 notused: { x: notCX  - btnW / 2, y: btnY, w: btnW, h: btnH }
             };
@@ -162,7 +201,7 @@
             var t = Math.max(0, Math.min(1, progress));
             function smooth(x) { return x * x * (3 - 2 * x); }
 
-            // --- Click handling ---
+            // Click handling
             var pressed = p.mouseIsPressed;
             if (pressed && !this._prevPressed && btns) {
                 var mx = p.mouseX, my = p.mouseY;
@@ -178,48 +217,38 @@
             }
             this._prevPressed = pressed;
 
-            // --- Tunnel paths: fan of arcs from cluster to each row, fade as cards arrive ---
+            // Tunnel arcs (fade as cards arrive)
             var tunnelAlpha = Math.max(0, (1 - t * 1.8) * 80);
             if (tunnelAlpha > 1) {
                 p.noFill();
                 p.strokeWeight(1.2);
                 var startCx = ox + W * 0.5;
                 var startCy = oy + H * 0.84;
-                // Control point peaks near the top — same as particle arcs
-                var peakY = oy + TOP_PAD * 0.35;
+                var peakY   = oy + TOP_PAD * 0.35;
                 FIELDS.forEach(function (fdef, fi) {
                     var c     = fdef.color;
                     var rowCy = oy + TOP_PAD + fi * rowH + rowH / 2;
-
                     p.stroke(c[0], c[1], c[2], tunnelAlpha);
-
-                    // Used-side arch (peaks near top, then curves down to row)
                     var exU = midX - chartW * 0.22;
                     p.beginShape();
                     for (var s = 0; s <= 1.001; s += 0.03) {
                         var it = 1 - s;
-                        p.vertex(
-                            it*it*startCx + 2*it*s*exU  + s*s*exU,
-                            it*it*startCy + 2*it*s*peakY + s*s*rowCy
-                        );
+                        p.vertex(it*it*startCx + 2*it*s*exU + s*s*exU,
+                                 it*it*startCy + 2*it*s*peakY + s*s*rowCy);
                     }
                     p.endShape();
-
-                    // Not-used-side arch
                     var exN = midX + chartW * 0.22;
                     p.beginShape();
                     for (var s = 0; s <= 1.001; s += 0.03) {
                         var it = 1 - s;
-                        p.vertex(
-                            it*it*startCx + 2*it*s*exN  + s*s*exN,
-                            it*it*startCy + 2*it*s*peakY + s*s*rowCy
-                        );
+                        p.vertex(it*it*startCx + 2*it*s*exN + s*s*exN,
+                                 it*it*startCy + 2*it*s*peakY + s*s*rowCy);
                     }
                     p.endShape();
                 });
             }
 
-            // --- Move particles along bezier arcs ---
+            // Move particles along bezier arcs
             particles.forEach(function (pt) {
                 var lt = Math.max(0, Math.min(1, (t - pt.delay) / (1 - MAX_DELAY)));
                 var et = smooth(lt);
@@ -228,20 +257,19 @@
                 pt.y = it*it*pt.sy + 2*it*et*pt.cy + et*et*pt.ey;
             });
 
-            // --- Background structure (fades in with progress) ---
-            var structAlpha = Math.round(Math.min(255, t * 3 * 255));
-
+            // Background grid lines
             p.stroke(235);
             p.strokeWeight(1);
             for (var fi = 1; fi < FIELDS.length; fi++) {
                 p.line(ox + 4, oy + TOP_PAD + fi * rowH, ox + W - 4, oy + TOP_PAD + fi * rowH);
             }
+            var structAlpha = Math.round(Math.min(255, t * 3 * 255));
             p.stroke(200, 200, 200, structAlpha);
             p.strokeWeight(1);
             p.line(midX, oy + TOP_PAD - 8, midX, oy + TOP_PAD + chartH);
             p.noStroke();
 
-            // --- Particles ---
+            // Particles
             particles.forEach(function (pt) {
                 var alpha = 215;
                 if (filter !== null) {
@@ -252,29 +280,29 @@
                 p.rect(pt.x - CARD/2, pt.y - CARD/2, CARD, CARD, 1.5);
             });
 
-            // --- Field labels ---
+            // Field labels — percentage text dark and larger
             FIELDS.forEach(function (fdef, fi) {
                 var fd    = fu[fdef.id];
                 if (!fd) return;
                 var rowCy = oy + TOP_PAD + fi * rowH + rowH / 2;
                 p.noStroke();
                 p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
-                p.rect(ox + 6, rowCy - 14, 10, 10, 2);
+                p.rect(ox + 6, rowCy - 15, 11, 11, 2);
                 p.fill(25);
                 p.textAlign(p.LEFT, p.CENTER);
-                p.textSize(Math.min(11, rowH * 0.2));
-                p.text(fdef.short, ox + 20, rowCy - 9);
-                p.fill(80, 80, 80, structAlpha);
-                p.textSize(10);
-                p.text(fd.pct_used.toFixed(1) + '% used', ox + 20, rowCy + 7);
+                p.textSize(Math.min(12, rowH * 0.22));
+                p.text(fdef.short, ox + 21, rowCy - 9);
+                // Dark, always-visible percentage
+                p.fill(40, 40, 40);
+                p.textSize(12);
+                p.text(fd.pct_used.toFixed(1) + '% used AI', ox + 21, rowCy + 8);
             });
 
-            // --- Clickable filter buttons ---
+            // Filter buttons
             if (btns) {
                 var usedOn = filter === 'used';
                 var notOn  = filter === 'notused';
 
-                // Using AI button
                 p.noStroke();
                 p.fill(usedOn ? 45 : 220, usedOn ? 155 : 242, usedOn ? 90 : 228);
                 p.rect(btns.used.x, btns.used.y, btns.used.w, btns.used.h, 5);
@@ -283,7 +311,6 @@
                 p.textSize(11);
                 p.text('Using AI', btns.used.x + btns.used.w / 2, btns.used.y + btns.used.h / 2);
 
-                // Not Using AI button
                 p.noStroke();
                 p.fill(notOn ? 200 : 252, notOn ? 55 : 228, notOn ? 55 : 228);
                 p.rect(btns.notused.x, btns.notused.y, btns.notused.w, btns.notused.h, 5);
@@ -293,7 +320,7 @@
                 p.text('Not Using AI', btns.notused.x + btns.notused.w / 2, btns.notused.y + btns.notused.h / 2);
             }
 
-            // --- Page title ---
+            // Chart title
             p.noStroke();
             p.fill(20);
             p.textAlign(p.CENTER, p.TOP);
