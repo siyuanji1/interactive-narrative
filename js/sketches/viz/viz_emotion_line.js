@@ -1,6 +1,6 @@
 // viz_emotion_line.js
-// Line chart with CI bands: emotion scores across AI usage levels
-// All lines same style (solid), different colors, with shaded CI
+// Line chart: emotion scores across AI usage levels
+// CI bands only on Curious and Anxious for clear contrast
 // Active at section index 3
 
 window.VizEmotionLine = (function () {
@@ -8,10 +8,10 @@ window.VizEmotionLine = (function () {
   const USAGE_ORDER = ['Rarely','Occasionally','Moderately','Considerably','Extensively'];
 
   const EMOTIONS = [
-    { key: 'curious', label: 'Curious', color: [34, 139, 34]   },
-    { key: 'hopeful', label: 'Hopeful', color: [186, 117, 23]  },
-    { key: 'bored',   label: 'Bored',   color: [120, 120, 120] },
-    { key: 'anxious', label: 'Anxious', color: [210, 60,  60]  },
+    { key: 'curious', label: 'Curious', color: [34, 139, 34],   showBand: true  },
+    { key: 'hopeful', label: 'Hopeful', color: [186, 117, 23],  showBand: false },
+    { key: 'bored',   label: 'Bored',   color: [160, 160, 160], showBand: false },
+    { key: 'anxious', label: 'Anxious', color: [210, 60,  60],  showBand: true  },
   ];
 
   const FIELDS = ['Applied Sciences','Social Sciences','Arts & Humanities','Natural & Life Sciences'];
@@ -99,28 +99,35 @@ window.VizEmotionLine = (function () {
     const data = aggData[activeField];
     if (!data) return;
 
+    // Draw bands first (behind lines)
     EMOTIONS.forEach(em => {
+      if (!em.showBand) return;
       const [r, g, b] = em.color;
 
-      // CI band
       const upper = [], lower = [];
       USAGE_ORDER.forEach((u, i) => {
         if (!data[u] || !data[u][em.key]) return;
         const { mean, ci } = data[u][em.key];
-        upper.push({ x: xPos(i), y: yPos(mean - ci) });
-        lower.push({ x: xPos(i), y: yPos(mean + ci) });
+        upper.push({ x: xPos(i), y: yPos(mean + ci) });
+        lower.push({ x: xPos(i), y: yPos(mean - ci) });
       });
 
       p.noStroke();
-      p.fill(r, g, b, 40);
+      p.fill(r, g, b, 55);
       p.beginShape();
       upper.forEach(pt => p.vertex(pt.x, pt.y));
       lower.slice().reverse().forEach(pt => p.vertex(pt.x, pt.y));
       p.endShape(p.CLOSE);
+    });
 
-      // main line — all solid
-      p.stroke(r, g, b, 220);
-      p.strokeWeight(2.5);
+    // Draw all lines
+    EMOTIONS.forEach(em => {
+      const [r, g, b] = em.color;
+      const lineWeight = em.showBand ? 3 : 1.5;
+      const alpha = em.showBand ? 240 : 150;
+
+      p.stroke(r, g, b, alpha);
+      p.strokeWeight(lineWeight);
       p.noFill();
       p.beginShape();
       USAGE_ORDER.forEach((u, i) => {
@@ -135,19 +142,21 @@ window.VizEmotionLine = (function () {
         const y = yPos(data[u][em.key].mean);
         p.fill(r, g, b);
         p.noStroke();
-        p.circle(xPos(i), y, 8);
+        p.circle(xPos(i), y, em.showBand ? 9 : 6);
       });
 
-      // right-side label (last point)
+      // right-side label
       const lastU = USAGE_ORDER[USAGE_ORDER.length - 1];
       if (data[lastU] && data[lastU][em.key]) {
-        const lx = xPos(USAGE_ORDER.length - 1) + 10;
+        const lx = xPos(USAGE_ORDER.length - 1) + 12;
         const ly = yPos(data[lastU][em.key].mean);
         p.fill(r, g, b);
         p.noStroke();
         p.textAlign(p.LEFT, p.CENTER);
-        p.textSize(11);
+        p.textSize(12);
+        p.textStyle(em.showBand ? p.BOLD : p.NORMAL);
         p.text(em.label, lx, ly);
+        p.textStyle(p.NORMAL);
       }
     });
   }
@@ -156,12 +165,19 @@ window.VizEmotionLine = (function () {
     let lx = ox, ly = oy - 30;
     EMOTIONS.forEach(em => {
       const [r, g, b] = em.color;
+
+      if (em.showBand) {
+        p.noStroke();
+        p.fill(r, g, b, 55);
+        p.rect(lx, ly - 6, 20, 12, 2);
+      }
+
       p.stroke(r, g, b);
-      p.strokeWeight(2.5);
+      p.strokeWeight(em.showBand ? 3 : 1.5);
       p.line(lx, ly, lx + 20, ly);
       p.fill(r, g, b);
       p.noStroke();
-      p.circle(lx + 10, ly, 7);
+      p.circle(lx + 10, ly, 6);
       p.fill(50);
       p.textSize(11);
       p.textAlign(p.LEFT, p.CENTER);
