@@ -303,18 +303,20 @@
                 var usedOn = filter === 'used';
                 var notOn  = filter === 'notused';
 
+                // "Using AI" — purple (distinct from all field colors)
                 p.noStroke();
-                p.fill(usedOn ? 45 : 220, usedOn ? 155 : 242, usedOn ? 90 : 228);
+                p.fill(usedOn ? 100 : 230, usedOn ? 60 : 220, usedOn ? 200 : 245);
                 p.rect(btns.used.x, btns.used.y, btns.used.w, btns.used.h, 5);
-                p.fill(usedOn ? 255 : 30, usedOn ? 255 : 110, usedOn ? 255 : 60);
+                p.fill(usedOn ? 255 : 80, usedOn ? 255 : 50, usedOn ? 255 : 170);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.textSize(11);
                 p.text('Using AI', btns.used.x + btns.used.w / 2, btns.used.y + btns.used.h / 2);
 
+                // "Not Using AI" — slate gray (distinct from all field colors)
                 p.noStroke();
-                p.fill(notOn ? 200 : 252, notOn ? 55 : 228, notOn ? 55 : 228);
+                p.fill(notOn ? 80 : 225, notOn ? 90 : 225, notOn ? 105 : 228);
                 p.rect(btns.notused.x, btns.notused.y, btns.notused.w, btns.notused.h, 5);
-                p.fill(notOn ? 255 : 170, notOn ? 255 : 45, notOn ? 255 : 45);
+                p.fill(notOn ? 255 : 70, notOn ? 255 : 80, notOn ? 255 : 95);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.textSize(11);
                 p.text('Not Using AI', btns.notused.x + btns.notused.w / 2, btns.notused.y + btns.notused.h / 2);
