@@ -142,6 +142,34 @@
   height: 300px;
 }
 
+#back-to-top {
+  position: fixed;
+  bottom: 28px;
+  right: 24px;
+  z-index: 300;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #222;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 40px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+#back-to-top.visible {
+  opacity: 0.75;
+  pointer-events: auto;
+}
+#back-to-top:hover {
+  opacity: 1;
+}
+
 #vis {
   display: flex;
   justify-content: center;
