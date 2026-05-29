@@ -67,18 +67,20 @@ window.VizRadar = {
             p.text(_radarAxes[i], cx + Math.cos(a) * (R + 26), cy + Math.sin(a) * (R + 26));
         }
 
-        // --- checkbox filter ---
+        // --- checkbox filter (only for interactive mode ai===2) ---
+        var introOnly = (ai === 21);
         var filter  = {};
         var cbs     = document.querySelectorAll('.field-cb');
         for (var ci = 0; ci < cbs.length; ci++) {
             filter[parseInt(cbs[ci].value, 10)] = cbs[ci].checked;
         }
-        var anyFilter = cbs.length > 0;
+        var anyFilter = !introOnly && cbs.length > 0;
 
-        // --- field polygons: shown at full size immediately, no progress animation ---
+        // --- field polygons ---
         for (var fi = 0; fi < _radarFields.length; fi++) {
             var fd = _radarFields[fi];
-            if (anyFilter && filter[fd.id] === false) { continue; }
+            if (introOnly && fd.id !== 0) { continue; }
+            if (!introOnly && anyFilter && filter[fd.id] === false) { continue; }
 
             p.fill(fd.r, fd.g, fd.b, 45);
             p.stroke(fd.r, fd.g, fd.b, 210);
@@ -98,7 +100,8 @@ window.VizRadar = {
         var colW   = W / cols;
         for (var li = 0; li < _radarFields.length; li++) {
             var lf      = _radarFields[li];
-            var hidden  = anyFilter && filter[lf.id] === false;
+            if (introOnly && lf.id !== 0) { continue; }
+            var hidden  = !introOnly && anyFilter && filter[lf.id] === false;
             var swAlpha = hidden ? 55 : 220;
             var txtCol  = hidden ? 170 : 35;
             var col     = li % cols;

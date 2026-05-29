@@ -27,7 +27,7 @@
                 return;
             }
 
-            if (ai === 2) {
+            if (ai === 2 || ai === 21) {
                 window.VizRadar && window.VizRadar.draw(p, manager, ai, progress);
                 return;
             }
