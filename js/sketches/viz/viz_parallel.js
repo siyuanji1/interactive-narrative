@@ -1,215 +1,171 @@
-// viz_parallel.js
-// Parallel coordinates: emotion profiles by field
-// % of students who feel each emotion "Often" or "Always"
-// Active at section index 4
+// viz_dumbbell.js - Dumbbell chart: Curious vs Anxious gap by field
+// Replaces VizParallel at section index 4
 
 window.VizParallel = (function () {
 
-  const EMOTIONS = ['curious','hopeful','calm','bored','anxious'];
-  const EMOTION_LABELS = ['Curious','Hopeful','Calm','Bored','Anxious'];
-
+  // Sorted by gap descending (curious - anxious)
   const FIELDS = [
-    { key: 'Applied Sciences',        color: [55,  138, 221], dash: false },
-    { key: 'Social Sciences',         color: [212,  83, 126], dash: false },
-    { key: 'Arts & Humanities',       color: [186, 117,  23], dash: true  },
-    { key: 'Natural & Life Sciences', color: [ 29, 158, 117], dash: false },
+    { key: 'Applied Sciences',        curious: 55.0, anxious: 10.2 },
+    { key: 'Natural & Life Sciences', curious: 52.7, anxious: 12.5 },
+    { key: 'Social Sciences',         curious: 50.3, anxious: 10.5 },
+    { key: 'Arts & Humanities',       curious: 47.8, anxious: 13.4 },
   ];
 
-  let rawData  = null;
-  let margin, plotW, plotH, ox, oy;
-  let lastP    = null;
-  let hoveredField = null;
+  const C_COL = [34, 139, 34];   // curious green
+  const A_COL = [210,  60,  60]; // anxious red
 
-  // ── load ──────────────────────────────────────────────────────────────────
-  function loadData(callback) {
-    if (rawData !== null) { callback(); return; }
-    fetch('data/parallel_data.json')
-      .then(r => r.json())
-      .then(data => { rawData = data; callback(); })
-      .catch(err => { console.error('parallel_data.json failed', err); rawData = {}; callback(); });
-  }
+  let margin, plotW, plotH, ox, oy, lastP = null;
+  let hoveredRow = null;
 
   function computeLayout(p) {
-    margin = { top: 60, right: 120, bottom: 70, left: 60 };
+    margin = { top: 60, right: 160, bottom: 50, left: 180 };
     plotW  = p.width  - margin.left - margin.right;
     plotH  = p.height - margin.top  - margin.bottom;
     ox     = margin.left;
     oy     = margin.top;
   }
 
-  // ── draw ──────────────────────────────────────────────────────────────────
-  function xPos(i) {
-    return ox + (i / (EMOTIONS.length - 1)) * plotW;
+  function xPos(val) {
+    return ox + ((val - 0) / 70) * plotW;
   }
 
-  function yPos(val) {
-    // val is 0–100 (percent)
-    return oy + plotH - (val / 60) * plotH;
+  function yPos(idx) {
+    const rowH = plotH / (FIELDS.length + 1);
+    return oy + rowH * (idx + 1);
   }
 
-  function drawAxes(p) {
-    // vertical axis lines
-    EMOTIONS.forEach((_, i) => {
-      const x = xPos(i);
-      p.stroke(0, 0, 0, 40); // 修改：竖向轴线改为微弱半透明黑色
-      p.strokeWeight(1);
-      p.line(x, oy, x, oy + plotH);
-
-      // tick marks 0,20,40,60
-      for (let v = 0; v <= 60; v += 20) {
-        const y = yPos(v);
-        p.stroke(0, 0, 0, 18); // 修改：横向背景网格线改为极淡的黑色
-        p.line(ox, y, ox + plotW, y);
-        if (i === 0) {
-          p.noStroke();
-          p.fill(80); // 修改：纵轴百分比数字改成深灰色
-          p.textSize(10);
-          p.textAlign(p.RIGHT, p.CENTER);
-          p.text(v + '%', ox - 6, y);
-        }
-      }
-
-      // emotion label
-      p.noStroke();
-      p.fill(50); // 修改：顶部情绪分类标签改为深色文字
-      p.textSize(12);
-      p.textAlign(p.CENTER, p.BOTTOM);
-      p.text(EMOTION_LABELS[i], x, oy - 10);
-    });
-
-    // y axis label
-    p.push();
-    p.translate(14, oy + plotH / 2);
-    p.rotate(-p.HALF_PI);
-    p.textAlign(p.CENTER, p.CENTER);
-    p.textSize(11);
-    p.fill(100); // 修改：纵轴标题改为深灰色
-    p.text('% feeling this emotion Often or Always', 0, 0);
-    p.pop();
-  }
-
-  function drawLines(p) {
-    if (!rawData) return;
-
-    FIELDS.forEach(f => {
-      const data = rawData[f.key];
-      if (!data) return;
-
-      const [r, g, b] = f.color;
-      const isHov = hoveredField === f.key;
-      const alpha = hoveredField ? (isHov ? 255 : 30) : 200; // 非悬停线的透明度稍微调低，加强对比
-
-      p.stroke(r, g, b, alpha);
-      p.strokeWeight(isHov ? 3.5 : 2);
-      p.noFill();
-
-      const pts = EMOTIONS.map((em, i) => ({
-        x: xPos(i),
-        y: yPos(data[em] || 0)
-      }));
-
-      if (f.dash && !isHov) {
-        for (let i = 0; i < pts.length - 1; i++) {
-          drawDashed(p, pts[i].x, pts[i].y, pts[i+1].x, pts[i+1].y, 8, 5);
-        }
-      } else {
-        p.beginShape();
-        pts.forEach(pt => p.vertex(pt.x, pt.y));
-        p.endShape();
-      }
-
-      // dots
-      pts.forEach((pt, i) => {
-        p.fill(r, g, b, alpha);
-        p.noStroke();
-        p.circle(pt.x, pt.y, isHov ? 10 : 7);
-
-        // value labels on hover
-        if (isHov) {
-          p.fill(30); // 修改：鼠标悬停弹出的百分比数字改用深色，确保白底能看清
-          p.textSize(11);
-          p.textAlign(p.CENTER, p.BOTTOM);
-          p.text((data[EMOTIONS[i]] || 0).toFixed(1) + '%', pt.x, pt.y - 8);
-        }
-      });
-
-      // field label at end of line
-      const last = pts[pts.length - 1];
-      p.noStroke();
-      p.fill(r, g, b, alpha);
-      p.textSize(11);
-      p.textAlign(p.LEFT, p.CENTER);
-      p.text(f.key, last.x + 8, last.y);
+  function drawGrid(p) {
+    [0, 10, 20, 30, 40, 50, 60, 70].forEach(v => {
+      p.stroke(0, 0, 0, v === 0 ? 80 : 15);
+      p.strokeWeight(v === 0 ? 1.5 : 1);
+      p.line(xPos(v), oy, xPos(v), oy + plotH);
+      p.noStroke(); p.fill(140); p.textSize(10);
+      p.textAlign(p.CENTER, p.TOP);
+      p.text(v + '%', xPos(v), oy + plotH + 8);
     });
   }
 
-  function drawDashed(p, x1, y1, x2, y2, dLen, gLen) {
-    const d = p.dist(x1, y1, x2, y2);
-    const steps = d / (dLen + gLen);
-    const dx = (x2-x1)/steps, dy = (y2-y1)/steps;
-    const ddx = dx*dLen/(dLen+gLen), ddy = dy*dLen/(dLen+gLen);
-    let cx=x1, cy=y1;
-    for (let i=0; i<steps; i++) {
-      p.line(cx, cy, cx+ddx, cy+ddy);
-      cx+=dx; cy+=dy;
-    }
+  function drawRows(p) {
+    FIELDS.forEach((f, i) => {
+      const y = yPos(i);
+      const xC = xPos(f.curious);
+      const xA = xPos(f.anxious);
+      const isHov = hoveredRow === i;
+      const alpha = hoveredRow !== null ? (isHov ? 255 : 60) : 210;
+      const gap = f.curious - f.anxious;
+
+      // connecting line
+      p.stroke(180, isHov ? 180 : 200, isHov ? 180 : 200, alpha * 0.6);
+      p.strokeWeight(isHov ? 3 : 2);
+      p.line(xA, y, xC, y);
+
+      // gap label in middle of line
+      const midX = (xA + xC) / 2;
+      if (isHov || hoveredRow === null) {
+        p.noStroke(); p.fill(80, 80, 80, alpha);
+        p.textAlign(p.CENTER, p.BOTTOM);
+        p.textSize(isHov ? 12 : 10);
+        p.textStyle(isHov ? p.BOLD : p.NORMAL);
+        p.text('gap: ' + gap.toFixed(1) + '%', midX, y - 6);
+        p.textStyle(p.NORMAL);
+      }
+
+      // curious dot (right, green)
+      const [cr,cg,cb] = C_COL;
+      p.noStroke(); p.fill(cr,cg,cb,alpha);
+      p.circle(xC, y, isHov ? 18 : 13);
+
+      // anxious dot (left, red)
+      const [ar,ag,ab] = A_COL;
+      p.fill(ar,ag,ab,alpha);
+      p.circle(xA, y, isHov ? 18 : 13);
+
+      // value labels
+      p.textAlign(p.LEFT, p.CENTER); p.textSize(11);
+      p.fill(cr,cg,cb,alpha);
+      p.text(f.curious.toFixed(1)+'%', xC + 10, y);
+
+      p.textAlign(p.RIGHT, p.CENTER);
+      p.fill(ar,ag,ab,alpha);
+      p.text(f.anxious.toFixed(1)+'%', xA - 10, y);
+
+      // field label on left
+      p.noStroke(); p.fill(isHov ? 30 : 60, alpha);
+      p.textAlign(p.RIGHT, p.CENTER);
+      p.textSize(isHov ? 13 : 12);
+      p.textStyle(isHov ? p.BOLD : p.NORMAL);
+      p.text(f.key, ox - 14, y);
+      p.textStyle(p.NORMAL);
+
+      // subtle row highlight on hover
+      if (isHov) {
+        p.noStroke(); p.fill(240, 248, 255, 80);
+        p.rect(ox - 10, y - 20, plotW + 20, 40, 4);
+      }
+    });
   }
 
   function drawLegend(p) {
-    let lx = ox, ly = oy + plotH + 36;
-    FIELDS.forEach(f => {
-      const [r,g,b] = f.color;
-      const isHov = hoveredField === f.key;
-      p.stroke(r,g,b); p.strokeWeight(2);
-      p.line(lx, ly, lx+20, ly);
-      p.fill(r,g,b); p.noStroke();
-      p.circle(lx+10, ly, 8);
-      p.fill(isHov ? 0 : 80); // 修改：底部图例文字改为深色（激活时纯黑，未激活深灰）
-      p.textSize(11);
-      p.textAlign(p.LEFT, p.CENTER);
-      p.text(f.key, lx+26, ly);
-      lx += p.textWidth(f.key) + 42;
+    const items = [
+      { label: 'Curious (Often/Always)', col: C_COL },
+      { label: 'Anxious (Often/Always)', col: A_COL },
+    ];
+    let lx = ox, ly = oy - 30;
+    items.forEach(item => {
+      const [r,g,b] = item.col;
+      p.noStroke(); p.fill(r,g,b);
+      p.circle(lx + 6, ly, 12);
+      p.fill(50); p.textSize(11); p.textAlign(p.LEFT, p.CENTER);
+      p.text(item.label, lx + 16, ly);
+      lx += p.textWidth(item.label) + 36;
     });
+  }
+
+  function drawAnnotations(p) {
+    // annotation for Applied Sciences (largest gap)
+    const y0 = yPos(0);
+    p.noStroke(); p.fill(34,120,34,170);
+    p.textSize(10); p.textAlign(p.LEFT, p.CENTER);
+    p.textStyle(p.ITALIC);
+    p.text('← largest gap', xPos(55) + 14, y0 + 16);
+
+    // annotation for Arts & Humanities (smallest gap, highest anxious)
+    const y3 = yPos(3);
+    p.fill(180,60,60,170);
+    p.textAlign(p.LEFT, p.CENTER);
+    p.text('← smallest gap + highest anxiety', xPos(47.8) + 14, y3 + 16);
+    p.textStyle(p.NORMAL);
+
+    // x axis title
+    p.fill(120); p.textSize(11); p.textAlign(p.CENTER, p.BOTTOM);
+    p.text('% of students feeling this emotion Often or Always', ox + plotW/2, oy + plotH + 44);
   }
 
   function checkHover(p) {
-    hoveredField = null;
-    if (!rawData) return;
-    FIELDS.forEach(f => {
-      const data = rawData[f.key];
-      if (!data) return;
-      EMOTIONS.forEach((em, i) => {
-        const x = xPos(i);
-        const y = yPos(data[em] || 0);
-        if (p.dist(p.mouseX, p.mouseY, x, y) < 14) {
-          hoveredField = f.key;
-        }
-      });
+    hoveredRow = null;
+    FIELDS.forEach((f, i) => {
+      const y = yPos(i);
+      if (p.mouseY > y - 22 && p.mouseY < y + 22 && p.mouseX > ox - 10 && p.mouseX < ox + plotW + 10) {
+        hoveredRow = i;
+      }
     });
   }
 
-  // ── public ────────────────────────────────────────────────────────────────
   return {
     draw: function (p, manager, ai, progress) {
       if (ai !== 4) return;
-
-      if (rawData === null) {
-        loadData(() => { computeLayout(p); lastP = p; });
-        p.background(255); // 修改：Loading 背景改纯白
-        p.fill(120); p.noStroke();
-        p.textAlign(p.CENTER, p.CENTER); p.textSize(14);
-        p.text('Loading...', p.width/2, p.height/2);
-        return;
-      }
-
       if (lastP !== p) { lastP = p; computeLayout(p); }
 
       checkHover(p);
-
-      p.background(255); // 修改：主画布背景改纯白
-      drawAxes(p);
-      drawLines(p);
+      p.background(255);
+      drawGrid(p);
       drawLegend(p);
+      drawRows(p);
+      drawAnnotations(p);
+
+      p.fill(160); p.noStroke(); p.textSize(9);
+      p.textAlign(p.RIGHT, p.BOTTOM);
+      p.text('Real data · Q32l & Q32j · n=15,734', ox + plotW, oy + plotH + 44);
     }
   };
 })();
