@@ -106,11 +106,26 @@
   min-height: 60vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 30px;
   font-family: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.65;
   color: #222;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.step-inner {
+  padding-bottom: 20px;
+}
+
+.step-inner.is-fixed {
+  position: fixed;
+  top: 70px;
+  z-index: 91;
+  overflow-y: auto;
+  max-height: calc(100vh - 80px);
 }
 
 #sections .title {

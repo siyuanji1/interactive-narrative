@@ -51,18 +51,18 @@ window.VizParallel = (function () {
     // vertical axis lines
     EMOTIONS.forEach((_, i) => {
       const x = xPos(i);
-      p.stroke(255, 255, 255, 30);
+      p.stroke(0, 0, 0, 40); // 修改：竖向轴线改为微弱半透明黑色
       p.strokeWeight(1);
       p.line(x, oy, x, oy + plotH);
 
       // tick marks 0,20,40,60
       for (let v = 0; v <= 60; v += 20) {
         const y = yPos(v);
-        p.stroke(255, 255, 255, 15);
+        p.stroke(0, 0, 0, 18); // 修改：横向背景网格线改为极淡的黑色
         p.line(ox, y, ox + plotW, y);
         if (i === 0) {
           p.noStroke();
-          p.fill(120);
+          p.fill(80); // 修改：纵轴百分比数字改成深灰色
           p.textSize(10);
           p.textAlign(p.RIGHT, p.CENTER);
           p.text(v + '%', ox - 6, y);
@@ -71,7 +71,7 @@ window.VizParallel = (function () {
 
       // emotion label
       p.noStroke();
-      p.fill(180);
+      p.fill(50); // 修改：顶部情绪分类标签改为深色文字
       p.textSize(12);
       p.textAlign(p.CENTER, p.BOTTOM);
       p.text(EMOTION_LABELS[i], x, oy - 10);
@@ -83,7 +83,7 @@ window.VizParallel = (function () {
     p.rotate(-p.HALF_PI);
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(11);
-    p.fill(120);
+    p.fill(100); // 修改：纵轴标题改为深灰色
     p.text('% feeling this emotion Often or Always', 0, 0);
     p.pop();
   }
@@ -97,7 +97,7 @@ window.VizParallel = (function () {
 
       const [r, g, b] = f.color;
       const isHov = hoveredField === f.key;
-      const alpha = hoveredField ? (isHov ? 255 : 40) : 200;
+      const alpha = hoveredField ? (isHov ? 255 : 30) : 200; // 非悬停线的透明度稍微调低，加强对比
 
       p.stroke(r, g, b, alpha);
       p.strokeWeight(isHov ? 3.5 : 2);
@@ -126,7 +126,7 @@ window.VizParallel = (function () {
 
         // value labels on hover
         if (isHov) {
-          p.fill(255);
+          p.fill(30); // 修改：鼠标悬停弹出的百分比数字改用深色，确保白底能看清
           p.textSize(11);
           p.textAlign(p.CENTER, p.BOTTOM);
           p.text((data[EMOTIONS[i]] || 0).toFixed(1) + '%', pt.x, pt.y - 8);
@@ -164,7 +164,7 @@ window.VizParallel = (function () {
       p.line(lx, ly, lx+20, ly);
       p.fill(r,g,b); p.noStroke();
       p.circle(lx+10, ly, 8);
-      p.fill(isHov ? 255 : 180);
+      p.fill(isHov ? 0 : 80); // 修改：底部图例文字改为深色（激活时纯黑，未激活深灰）
       p.textSize(11);
       p.textAlign(p.LEFT, p.CENTER);
       p.text(f.key, lx+26, ly);
@@ -195,7 +195,7 @@ window.VizParallel = (function () {
 
       if (rawData === null) {
         loadData(() => { computeLayout(p); lastP = p; });
-        p.background(18,18,22);
+        p.background(255); // 修改：Loading 背景改纯白
         p.fill(120); p.noStroke();
         p.textAlign(p.CENTER, p.CENTER); p.textSize(14);
         p.text('Loading...', p.width/2, p.height/2);
@@ -206,7 +206,7 @@ window.VizParallel = (function () {
 
       checkHover(p);
 
-      p.background(18,18,22);
+      p.background(255); // 修改：主画布背景改纯白
       drawAxes(p);
       drawLines(p);
       drawLegend(p);
