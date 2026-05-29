@@ -143,6 +143,21 @@
 
 
   <button id="back-to-top" title="Back to top">&#8679; Back to Top</button>
+
+  <div id="section-index">
+    <div id="section-index-panel">
+      <div class="index-item" data-target="0">Introduction</div>
+      <div class="index-item" data-target="1">Does Your Major Predict Your Use?</div>
+      <div class="index-item" data-target="21">What Are Students Using AI For?</div>
+      <div class="index-item" data-target="3">More AI, More Curiosity</div>
+      <div class="index-item" data-target="4">But Not Every Field Feels the Same</div>
+      <div class="index-item" data-target="5">AI Helps You Work — But Does It Help You Grow?</div>
+      <div class="index-item" data-target="6">Job Confidence Gap</div>
+      <div class="index-item" data-target="10">About the Authors</div>
+    </div>
+    <button id="index-btn">&#9776; Sections</button>
+  </div>
+
   <script>
     (function () {
       var btn = document.getElementById('back-to-top');
@@ -152,6 +167,32 @@
       });
       btn.addEventListener('click', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      // Section index
+      var indexBtn = document.getElementById('index-btn');
+      var panel    = document.getElementById('section-index-panel');
+      indexBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        panel.classList.toggle('open');
+      });
+      document.addEventListener('click', function () {
+        panel.classList.remove('open');
+      });
+      panel.addEventListener('click', function (e) { e.stopPropagation(); });
+
+      document.querySelectorAll('.index-item').forEach(function (item) {
+        item.addEventListener('click', function () {
+          var target = parseInt(item.dataset.target, 10);
+          var section = Array.prototype.find.call(
+            document.querySelectorAll('.step'),
+            function (el) {
+              return parseInt(el.dataset.activeIndex, 10) === target;
+            }
+          );
+          if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          panel.classList.remove('open');
+        });
       });
     })();
   </script>
