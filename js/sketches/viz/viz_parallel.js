@@ -1,151 +1,148 @@
-// viz_dumbbell.js - Dumbbell chart: Curious vs Anxious gap by field
+// viz_ratio.js - Curious/Anxious ratio by field
+// Simple horizontal bar showing how many times more curious than anxious
 // Replaces VizParallel at section index 4
 
 window.VizParallel = (function () {
 
-  // Sorted by gap descending (curious - anxious)
   const FIELDS = [
     { key: 'Applied Sciences',        curious: 55.0, anxious: 10.2 },
     { key: 'Natural & Life Sciences', curious: 52.7, anxious: 12.5 },
     { key: 'Social Sciences',         curious: 50.3, anxious: 10.5 },
     { key: 'Arts & Humanities',       curious: 47.8, anxious: 13.4 },
-  ];
+  ].map(f => ({ ...f, ratio: f.curious / f.anxious }))
+   .sort((a, b) => b.ratio - a.ratio);
 
-  const C_COL = [34, 139, 34];   // curious green
-  const A_COL = [210,  60,  60]; // anxious red
-
+  const MAX_RATIO = 6;
   let margin, plotW, plotH, ox, oy, lastP = null;
   let hoveredRow = null;
 
   function computeLayout(p) {
-    margin = { top: 60, right: 160, bottom: 50, left: 180 };
+    margin = { top: 80, right: 80, bottom: 70, left: 210 };
     plotW  = p.width  - margin.left - margin.right;
     plotH  = p.height - margin.top  - margin.bottom;
     ox     = margin.left;
     oy     = margin.top;
   }
 
-  function xPos(val) {
-    return ox + ((val - 0) / 70) * plotW;
-  }
-
-  function yPos(idx) {
+  function xPos(v) { return ox + (v / MAX_RATIO) * plotW; }
+  function yPos(i) {
     const rowH = plotH / (FIELDS.length + 1);
-    return oy + rowH * (idx + 1);
+    return oy + rowH * (i + 1);
   }
 
   function drawGrid(p) {
-    [0, 10, 20, 30, 40, 50, 60, 70].forEach(v => {
-      p.stroke(0, 0, 0, v === 0 ? 80 : 15);
-      p.strokeWeight(v === 0 ? 1.5 : 1);
-      p.line(xPos(v), oy, xPos(v), oy + plotH);
-      p.noStroke(); p.fill(140); p.textSize(10);
+    [1, 2, 3, 4, 5, 6].forEach(v => {
+      const x = xPos(v);
+      p.stroke(v === 1 ? 80 : 0, v === 1 ? 80 : 0, v === 1 ? 80 : 0, v === 1 ? 140 : 18);
+      p.strokeWeight(v === 1 ? 2 : 1);
+      p.line(x, oy - 20, x, oy + plotH);
+      p.noStroke(); p.fill(140); p.textSize(11);
       p.textAlign(p.CENTER, p.TOP);
-      p.text(v + '%', xPos(v), oy + plotH + 8);
+      p.text(v + 'x', x, oy + plotH + 10);
     });
+
+    // baseline label
+    p.fill(80); p.textSize(10); p.textAlign(p.CENTER, p.TOP);
+    p.text('equal', xPos(1), oy + plotH + 26);
+
+    // x axis title
+    p.fill(120); p.textSize(12); p.textAlign(p.CENTER, p.TOP);
+    p.text('Curious ÷ Anxious ratio', ox + plotW / 2, oy + plotH + 44);
   }
 
-  function drawRows(p) {
+  function drawBars(p) {
     FIELDS.forEach((f, i) => {
-      const y = yPos(i);
-      const xC = xPos(f.curious);
-      const xA = xPos(f.anxious);
+      const y    = yPos(i);
+      const x    = xPos(f.ratio);
+      const x1   = xPos(1);
       const isHov = hoveredRow === i;
-      const alpha = hoveredRow !== null ? (isHov ? 255 : 60) : 210;
-      const gap = f.curious - f.anxious;
+      const isTop = i === 0;
+      const isBot = i === FIELDS.length - 1;
+      const alpha = hoveredRow !== null ? (isHov ? 255 : 60) : 200;
 
-      // connecting line
-      p.stroke(180, isHov ? 180 : 200, isHov ? 180 : 200, alpha * 0.6);
-      p.strokeWeight(isHov ? 3 : 2);
-      p.line(xA, y, xC, y);
+      // color: top = strong green, bottom = muted red, others = blue-ish
+      let r, g, b;
+      if (isTop)      { r=34;  g=139; b=34;  }
+      else if (isBot) { r=210; g=60;  b=60;  }
+      else            { r=55;  g=138; b=221; }
 
-      // gap label in middle of line
-      const midX = (xA + xC) / 2;
-      if (isHov || hoveredRow === null) {
-        p.noStroke(); p.fill(80, 80, 80, alpha);
-        p.textAlign(p.CENTER, p.BOTTOM);
-        p.textSize(isHov ? 12 : 10);
-        p.textStyle(isHov ? p.BOLD : p.NORMAL);
-        p.text('gap: ' + gap.toFixed(1) + '%', midX, y - 6);
-        p.textStyle(p.NORMAL);
+      // row hover highlight
+      if (isHov) {
+        p.noStroke(); p.fill(r, g, b, 10);
+        p.rect(ox - 200, y - 26, plotW + 270, 52, 4);
       }
 
-      // curious dot (right, green)
-      const [cr,cg,cb] = C_COL;
-      p.noStroke(); p.fill(cr,cg,cb,alpha);
-      p.circle(xC, y, isHov ? 18 : 13);
+      // bar from 1x to ratio
+      p.noStroke(); p.fill(r, g, b, alpha * 0.25);
+      p.rect(x1, y - (isHov ? 16 : 12), x - x1, isHov ? 32 : 24, 3);
 
-      // anxious dot (left, red)
-      const [ar,ag,ab] = A_COL;
-      p.fill(ar,ag,ab,alpha);
-      p.circle(xA, y, isHov ? 18 : 13);
+      // bar outline
+      p.stroke(r, g, b, alpha * 0.5);
+      p.strokeWeight(1);
+      p.noFill();
+      p.rect(x1, y - (isHov ? 16 : 12), x - x1, isHov ? 32 : 24, 3);
 
-      // value labels
-      p.textAlign(p.LEFT, p.CENTER); p.textSize(11);
-      p.fill(cr,cg,cb,alpha);
-      p.text(f.curious.toFixed(1)+'%', xC + 10, y);
+      // end dot
+      p.noStroke(); p.fill(r, g, b, alpha);
+      p.circle(x, y, isHov ? 22 : 16);
 
+      // ratio label inside/after dot
+      p.fill(255); p.textAlign(p.CENTER, p.CENTER);
+      p.textSize(isHov ? 13 : 11);
+      p.textStyle(p.BOLD);
+      p.text(f.ratio.toFixed(1) + 'x', x, y);
+      p.textStyle(p.NORMAL);
+
+      // field label
+      p.noStroke(); p.fill(isHov ? 20 : 50, alpha);
       p.textAlign(p.RIGHT, p.CENTER);
-      p.fill(ar,ag,ab,alpha);
-      p.text(f.anxious.toFixed(1)+'%', xA - 10, y);
-
-      // field label on left
-      p.noStroke(); p.fill(isHov ? 30 : 60, alpha);
-      p.textAlign(p.RIGHT, p.CENTER);
-      p.textSize(isHov ? 13 : 12);
+      p.textSize(isHov ? 14 : 13);
       p.textStyle(isHov ? p.BOLD : p.NORMAL);
       p.text(f.key, ox - 14, y);
       p.textStyle(p.NORMAL);
 
-      // subtle row highlight on hover
+      // annotation for extremes
+      if (isTop) {
+        p.fill(34, 120, 34, 170); p.textSize(10);
+        p.textAlign(p.LEFT, p.CENTER);
+        p.textStyle(p.ITALIC);
+        p.text('most curious relative to anxious', x + 18, y);
+        p.textStyle(p.NORMAL);
+      }
+      if (isBot) {
+        p.fill(180, 50, 50, 170); p.textSize(10);
+        p.textAlign(p.LEFT, p.CENTER);
+        p.textStyle(p.ITALIC);
+        p.text('highest anxiety relative to curiosity', x + 18, y);
+        p.textStyle(p.NORMAL);
+      }
+
+      // hover detail
       if (isHov) {
-        p.noStroke(); p.fill(240, 248, 255, 80);
-        p.rect(ox - 10, y - 20, plotW + 20, 40, 4);
+        p.noStroke(); p.fill(60); p.textSize(11);
+        p.textAlign(p.LEFT, p.CENTER);
+        p.text(
+          f.curious.toFixed(0) + '% curious  ÷  ' + f.anxious.toFixed(0) + '% anxious  =  ' + f.ratio.toFixed(2) + 'x',
+          ox - 200, y + 32
+        );
       }
     });
   }
 
-  function drawLegend(p) {
-    const items = [
-      { label: 'Curious (Often/Always)', col: C_COL },
-      { label: 'Anxious (Often/Always)', col: A_COL },
-    ];
-    let lx = ox, ly = oy - 30;
-    items.forEach(item => {
-      const [r,g,b] = item.col;
-      p.noStroke(); p.fill(r,g,b);
-      p.circle(lx + 6, ly, 12);
-      p.fill(50); p.textSize(11); p.textAlign(p.LEFT, p.CENTER);
-      p.text(item.label, lx + 16, ly);
-      lx += p.textWidth(item.label) + 36;
-    });
-  }
-
-  function drawAnnotations(p) {
-    // annotation for Applied Sciences (largest gap)
-    const y0 = yPos(0);
-    p.noStroke(); p.fill(34,120,34,170);
-    p.textSize(10); p.textAlign(p.LEFT, p.CENTER);
-    p.textStyle(p.ITALIC);
-    p.text('← largest gap', xPos(55) + 14, y0 + 16);
-
-    // annotation for Arts & Humanities (smallest gap, highest anxious)
-    const y3 = yPos(3);
-    p.fill(180,60,60,170);
-    p.textAlign(p.LEFT, p.CENTER);
-    p.text('← smallest gap + highest anxiety', xPos(47.8) + 14, y3 + 16);
+  function drawTitle(p) {
+    p.noStroke(); p.fill(40); p.textSize(14);
+    p.textAlign(p.LEFT, p.TOP); p.textStyle(p.BOLD);
+    p.text('How many times more curious than anxious?', ox, oy - 52);
     p.textStyle(p.NORMAL);
-
-    // x axis title
-    p.fill(120); p.textSize(11); p.textAlign(p.CENTER, p.BOTTOM);
-    p.text('% of students feeling this emotion Often or Always', ox + plotW/2, oy + plotH + 44);
+    p.fill(120); p.textSize(11);
+    p.text('Ratio of students feeling Curious vs Anxious "Often or Always" · real data · n=15,734', ox, oy - 30);
   }
 
   function checkHover(p) {
     hoveredRow = null;
-    FIELDS.forEach((f, i) => {
+    FIELDS.forEach((_, i) => {
       const y = yPos(i);
-      if (p.mouseY > y - 22 && p.mouseY < y + 22 && p.mouseX > ox - 10 && p.mouseX < ox + plotW + 10) {
+      if (p.mouseY > y - 28 && p.mouseY < y + 28 && p.mouseX > ox - 200 && p.mouseX < ox + plotW + 80) {
         hoveredRow = i;
       }
     });
@@ -155,17 +152,11 @@ window.VizParallel = (function () {
     draw: function (p, manager, ai, progress) {
       if (ai !== 4) return;
       if (lastP !== p) { lastP = p; computeLayout(p); }
-
       checkHover(p);
       p.background(255);
+      drawTitle(p);
       drawGrid(p);
-      drawLegend(p);
-      drawRows(p);
-      drawAnnotations(p);
-
-      p.fill(160); p.noStroke(); p.textSize(9);
-      p.textAlign(p.RIGHT, p.BOTTOM);
-      p.text('Real data · Q32l & Q32j · n=15,734', ox + plotW, oy + plotH + 44);
+      drawBars(p);
     }
   };
 })();
