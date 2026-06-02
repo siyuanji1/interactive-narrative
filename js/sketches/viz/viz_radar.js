@@ -21,7 +21,7 @@ window.VizRadar = {
         var N  = _radarAxes.length;
 
         // Legend takes bottom strip; chart fills the rest
-        var legendH = 28;
+        var legendH = 36;
         var legendRows = Math.ceil(_radarFields.length / 3);
         var legendTop = oy + H - legendH * legendRows - 10;
 
@@ -47,11 +47,18 @@ window.VizRadar = {
                 p.vertex(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
             }
             p.endShape();
+            // Show % label on every spoke, offset slightly so it doesn't sit on the line
             p.noStroke();
-            p.fill(175, 175, 175);
-            p.textAlign(p.CENTER, p.BOTTOM);
+            p.fill(100, 100, 115);
             p.textSize(9);
-            p.text(String(lv * 25) + '%', cx + 3, cy - rr - 1);
+            for (k = 0; k < N; k++) {
+                a = ang(k);
+                var lx2 = cx + Math.cos(a) * rr;
+                var ly2 = cy + Math.sin(a) * rr;
+                p.textAlign(p.CENTER, p.CENTER);
+                p.text(String(lv * 25) + '%', lx2 + Math.cos(a + Math.PI / 2) * 8,
+                                               ly2 + Math.sin(a + Math.PI / 2) * 8);
+            }
         }
 
         // --- axis spokes and labels ---
@@ -111,11 +118,11 @@ window.VizRadar = {
 
             p.noStroke();
             p.fill(lf.r, lf.g, lf.b, swAlpha);
-            p.rect(lx, ly, 11, 11, 2);
+            p.rect(lx, ly, 14, 14, 2);
             p.fill(txtCol, txtCol, txtCol);
             p.textAlign(p.LEFT, p.CENTER);
-            p.textSize(11);
-            p.text(lf.name, lx + 15, ly + 5);
+            p.textSize(14);
+            p.text(lf.name, lx + 20, ly + 7);
         }
 
         // --- chart title ---
