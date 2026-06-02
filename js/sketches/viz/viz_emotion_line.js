@@ -65,8 +65,6 @@ window.VizEmotionLine = (function () {
     USAGE_ORDER.forEach((l,i)=>p.text(l,xPos(i),oy+plotH+10));
     p.textSize(12); p.fill(100);
     p.text('AI usage level (Q15)',ox+plotW/2,oy+plotH+32);
-    p.fill(80); p.textSize(10); p.textAlign(p.LEFT,p.CENTER);
-    p.text('← starting point',ox+4,yPos(0)-10);
   }
 
   function findCrossing(data) {
