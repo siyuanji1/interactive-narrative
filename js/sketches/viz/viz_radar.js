@@ -1,7 +1,8 @@
 // viz_radar.js - spider/radar chart: AI task usage by academic field
 // Axes order (clockwise from top): Research, Writing, Summarizing, Coding, Brainstorming
 
-var _radarAxes = ['Research', 'Writing', 'Summarizing', 'Coding', 'Brainstorming'];
+var _radarAxes  = ['Research', 'Writing', 'Summarizing', 'Coding', 'Brainstorming'];
+var _radarIcons = ['🔍', '✍️', '📋', '💻', '💡'];
 
 var _radarFields = [
     { id: 0, name: 'Overall (all fields)', r: 120, g: 120, b: 140, v: [0.49, 0.47, 0.45, 0.36, 0.48] },
@@ -68,10 +69,14 @@ window.VizRadar = {
             p.strokeWeight(1);
             p.line(cx, cy, cx + Math.cos(a) * R, cy + Math.sin(a) * R);
             p.noStroke();
-            p.fill(40, 40, 40);
             p.textAlign(p.CENTER, p.CENTER);
+            // icon closer to edge
+            p.textSize(18);
+            p.text(_radarIcons[i], cx + Math.cos(a) * (R + 22), cy + Math.sin(a) * (R + 22));
+            // label further out
+            p.fill(40, 40, 40);
             p.textSize(12);
-            p.text(_radarAxes[i], cx + Math.cos(a) * (R + 26), cy + Math.sin(a) * (R + 26));
+            p.text(_radarAxes[i], cx + Math.cos(a) * (R + 44), cy + Math.sin(a) * (R + 44));
         }
 
         // --- checkbox filter (only for interactive mode ai===2) ---
