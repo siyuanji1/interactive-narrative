@@ -162,7 +162,7 @@
             p.fill(160, 160, 175, hintA);
             p.textAlign(p.CENTER, p.CENTER);
             p.textSize(13);
-            p.text('hover over the dots to interact · each dot = a student', cx, oy + H * 0.87);
+            p.text('hover over the dots to interact · each dot = a student', cx, oy + H * 0.76);
 
             // ── Animated stat counters ──
             var se = Math.min(1, elapsed / 1.8);
@@ -173,7 +173,7 @@
                 { val: 149,   label: 'countries' },
                 { val: 174,   label: 'questions' }
             ];
-            var stripY = oy + H * 0.90;
+            var stripY = oy + H * 0.87;
             var colW   = W / 3;
             stats.forEach(function (s, i) {
                 var sx  = ox + colW * i + colW / 2;
