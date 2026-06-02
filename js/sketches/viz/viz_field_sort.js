@@ -13,10 +13,10 @@
         _btns: null,
 
         _FIELDS: [
-            { id: 2, color: [70,  130, 210], short: 'Social Sciences'   },
             { id: 3, color: [60,  170, 110], short: 'Applied Sciences'  },
-            { id: 1, color: [210, 90,  120], short: 'Arts & Humanities' },
-            { id: 4, color: [230, 155, 50],  short: 'Natural Sciences'  }
+            { id: 4, color: [230, 155, 50],  short: 'Natural Sciences'  },
+            { id: 2, color: [70,  130, 210], short: 'Social Sciences'   },
+            { id: 1, color: [210, 90,  120], short: 'Arts & Humanities' }
         ],
 
         _CARD:      9,   // bigger cards
