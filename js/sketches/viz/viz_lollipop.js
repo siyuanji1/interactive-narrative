@@ -35,12 +35,7 @@ window.VizLollipop = (function () {
 
   function drawBackgroundZones(p) {
     const nx = xPos(NEUTRAL);
-    p.noStroke();
-    p.fill(29, 158, 117, 10);
-    p.rect(nx, oy - 10, ox + plotW - nx, plotH + 20);
-    p.fill(224, 75, 74, 6);
-    p.rect(ox, oy - 10, nx - ox, plotH + 20);
-    p.textSize(12); p.textAlign(p.LEFT, p.TOP);
+    p.textSize(10); p.textAlign(p.LEFT, p.TOP);
     p.fill(29, 158, 117, 130);
     p.text('AI helps ↑', nx + 8, oy - 6);
     p.textAlign(p.RIGHT, p.TOP);
