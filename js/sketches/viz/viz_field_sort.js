@@ -275,7 +275,16 @@
                 if (filter !== null) {
                     alpha = ((filter === 'used') ? pt.used : !pt.used) ? 215 : 28;
                 }
-                p.fill(pt.color[0], pt.color[1], pt.color[2], alpha);
+                var r, g, b;
+                if (pt.used) {
+                    r = pt.color[0]; g = pt.color[1]; b = pt.color[2];
+                } else {
+                    // blend field color with grey for not-using-AI cards
+                    r = Math.round(pt.color[0] * 0.35 + 195 * 0.65);
+                    g = Math.round(pt.color[1] * 0.35 + 195 * 0.65);
+                    b = Math.round(pt.color[2] * 0.35 + 195 * 0.65);
+                }
+                p.fill(r, g, b, alpha);
                 p.noStroke();
                 p.rect(pt.x - CARD/2, pt.y - CARD/2, CARD, CARD, 1.5);
             });
