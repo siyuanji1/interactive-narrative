@@ -85,7 +85,7 @@
 
             // Used side ends at midX; not-used side starts at midX
             var usedStartXBase = midX - rowW - 4;
-            var notStartXBase  = midX + 4;
+            var notStartXBase  = midX + 20;
 
             // Phyllotaxis spiral start at bottom-center
             var startCx = ox + W * 0.5;
@@ -298,26 +298,26 @@
                 p.textSize(Math.min(12, rowH * 0.22));
                 p.text(fdef.short, ox + 21, rowCy);
 
-                // Using AI percentage
-                p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
+                // Using AI percentage — teal to match button
+                p.fill(20, 110, 90);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.textSize(13);
                 p.textStyle(p.BOLD);
                 p.text(fd.pct_used.toFixed(1) + '%', usedMidX, pctY);
                 p.textStyle(p.NORMAL);
-                p.fill(100, 100, 110);
+                p.fill(20, 110, 90);
                 p.textSize(10);
                 p.text('using AI', usedMidX, lblY);
 
-                // Not Using AI percentage
+                // Not Using AI percentage — gray to match button
                 var notPct = (100 - fd.pct_used).toFixed(1);
-                p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
+                p.fill(70, 80, 95);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.textSize(13);
                 p.textStyle(p.BOLD);
                 p.text(notPct + '%', notMidX, pctY);
                 p.textStyle(p.NORMAL);
-                p.fill(100, 100, 110);
+                p.fill(70, 80, 95);
                 p.textSize(10);
                 p.text('not using AI', notMidX, lblY);
             });
