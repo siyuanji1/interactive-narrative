@@ -131,13 +131,12 @@ window.VizLollipop = (function () {
     p.line(rx, prodMidY,  rx+8, prodMidY);
     p.line(rx, thinkMidY, rx+8, thinkMidY);
 
-    p.noStroke(); p.fill(60); p.textSize(11);
+    p.noStroke(); p.fill(60); p.textSize(10);
     p.textAlign(p.LEFT, p.CENTER); p.textStyle(p.BOLD);
-    p.text('AI helps',      rx+12, (prodMidY+thinkMidY)/2 - 16);
-    p.text('productivity',  rx+12, (prodMidY+thinkMidY)/2);
+    p.text('Productivity scores', rx+12, (prodMidY+thinkMidY)/2 - 8);
+    p.text('0.4pts higher than', rx+12, (prodMidY+thinkMidY)/2 + 8);
+    p.text('thinking skills', rx+12, (prodMidY+thinkMidY)/2 + 24);
     p.textStyle(p.NORMAL);
-    p.fill(100); p.textSize(11);
-    p.text('40% more',      rx+12, (prodMidY+thinkMidY)/2 + 16);
   }
 
   function drawLegend(p) {
