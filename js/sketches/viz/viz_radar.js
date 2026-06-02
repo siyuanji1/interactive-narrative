@@ -27,8 +27,8 @@ window.VizRadar = {
         var legendTop = oy + H - legendH * legendRows - 10;
 
         var cx = ox + W * 0.52;
-        var cy = oy + (legendTop - oy) * 0.52 + oy * 0.1;
-        var R  = Math.min(W * 0.36, (legendTop - oy - 50) * 0.46);
+        var cy = oy + (legendTop - oy) * 0.56 + oy * 0.1;
+        var R  = Math.min(W * 0.30, (legendTop - oy - 70) * 0.42);
 
         function ang(i) {
             return -Math.PI / 2 + (2 * Math.PI * i / N);
@@ -48,18 +48,12 @@ window.VizRadar = {
                 p.vertex(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
             }
             p.endShape();
-            // Show % label on every spoke, offset slightly so it doesn't sit on the line
+            // % label only along the top (Research) spoke, offset right so it clears the line
             p.noStroke();
-            p.fill(100, 100, 115);
-            p.textSize(9);
-            for (k = 0; k < N; k++) {
-                a = ang(k);
-                var lx2 = cx + Math.cos(a) * rr;
-                var ly2 = cy + Math.sin(a) * rr;
-                p.textAlign(p.CENTER, p.CENTER);
-                p.text(String(lv * 25) + '%', lx2 + Math.cos(a + Math.PI / 2) * 8,
-                                               ly2 + Math.sin(a + Math.PI / 2) * 8);
-            }
+            p.fill(120, 120, 135);
+            p.textAlign(p.LEFT, p.CENTER);
+            p.textSize(10);
+            p.text(String(lv * 25) + '%', cx + 6, cy - rr);
         }
 
         // --- axis spokes and labels ---
@@ -69,14 +63,12 @@ window.VizRadar = {
             p.strokeWeight(1);
             p.line(cx, cy, cx + Math.cos(a) * R, cy + Math.sin(a) * R);
             p.noStroke();
-            p.textAlign(p.CENTER, p.CENTER);
-            // icon closer to edge
-            p.textSize(18);
-            p.text(_radarIcons[i], cx + Math.cos(a) * (R + 22), cy + Math.sin(a) * (R + 22));
-            // label further out
             p.fill(40, 40, 40);
-            p.textSize(12);
-            p.text(_radarAxes[i], cx + Math.cos(a) * (R + 44), cy + Math.sin(a) * (R + 44));
+            p.textAlign(p.CENTER, p.CENTER);
+            p.textSize(13);
+            p.text(_radarIcons[i] + ' ' + _radarAxes[i],
+                   cx + Math.cos(a) * (R + 36),
+                   cy + Math.sin(a) * (R + 36));
         }
 
         // --- checkbox filter (only for interactive mode ai===2) ---
@@ -135,6 +127,6 @@ window.VizRadar = {
         p.fill(20, 20, 20);
         p.textAlign(p.CENTER, p.TOP);
         p.textSize(13);
-        p.text('AI Task Usage by Academic Field', ox + W / 2, oy + 8);
+        p.text('AI Task Usage by Academic Field', ox + W / 2, oy + 14);
     }
 };
