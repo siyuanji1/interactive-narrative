@@ -160,7 +160,6 @@
                         if (visualController) visualController.handleActive(mappedIndex);
                     });
 
-                    var _autoAdvanced = false;
                     sc.on('progress', function (index, progress) {
                         // Map index to any per-section activeIndex so the sketch receives
                         // a consistent activeIndex value during progress updates.
@@ -172,14 +171,6 @@
                                 if (!isNaN(parsed)) mappedIndex = parsed;
                             }
                         } catch (e) { /* ignore */ }
-
-                        // Auto-advance from section 0 at 60% progress
-                        if (mappedIndex === 0 && progress >= 0.60 && !_autoAdvanced) {
-                            _autoAdvanced = true;
-                            var nextStep = sc.steps && sc.steps[1];
-                            if (nextStep) nextStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                        if (mappedIndex !== 0) _autoAdvanced = false;
 
                         if (window.__sketchAPI && window.__sketchAPI.setState) {
                             window.__sketchAPI.setState({ progress: progress, activeIndex: mappedIndex });
