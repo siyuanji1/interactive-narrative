@@ -97,16 +97,19 @@
                         document.querySelectorAll('.step').forEach(function (el, i) {
                             var inner = el.querySelector('.step-inner');
                             if (!inner) return;
-                            if (i === index && r) {
+                            var isTall = el.offsetHeight > window.innerHeight * 1.1;
+                            if (i === index && r && isTall) {
                                 inner.classList.add('is-fixed');
-                                inner.style.left  = r.left + 'px';
-                                inner.style.width = r.width + 'px';
-                                inner.style.top   = '50%';
+                                inner.style.left      = r.left + 'px';
+                                inner.style.width     = r.width + 'px';
+                                inner.style.top       = '50%';
                                 inner.style.transform = 'translateY(-50%)';
                             } else {
                                 inner.classList.remove('is-fixed');
-                                inner.style.left  = '';
-                                inner.style.width = '';
+                                inner.style.left      = '';
+                                inner.style.width     = '';
+                                inner.style.top       = '';
+                                inner.style.transform = '';
                             }
                         });
                     }

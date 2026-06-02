@@ -35,8 +35,8 @@ window.VizJobConfidence = {
         var cW   = padR - padL;
         var cH   = padB - padT;
 
-        // Y scale: 1.0 to 4.5
-        var yMin = 1.0, yMax = 4.5;
+        // Y scale: 1.0 to 5.0
+        var yMin = 1.0, yMax = 5.0;
         function yp(v) { return padB - cH * (v - yMin) / (yMax - yMin); }
 
         // X column centers
@@ -47,7 +47,7 @@ window.VizJobConfidence = {
         var jitter = [-21, -7, 7, 21];
 
         // Grid lines and Y-axis labels
-        var yTicks = [1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
+        var yTicks = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0];
         for (var gi = 0; gi < yTicks.length; gi++) {
             var gv = yTicks[gi];
             var gy = yp(gv);
@@ -160,7 +160,7 @@ window.VizJobConfidence = {
         p.textAlign(p.CENTER, p.TOP);
         p.textSize(14);
         p.textStyle(p.BOLD);
-        p.text('Job Confidence Gap by Field', ox + W / 2, oy + 12);
+        p.text('How AI Usage Will Affect Your Job Confidence?', ox + W / 2, oy + 12);
         p.textStyle(p.NORMAL);
     }
 };
