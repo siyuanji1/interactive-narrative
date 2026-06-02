@@ -143,7 +143,7 @@ window.VizJobConfidence = {
                 p.fill(fd.r, fd.g, fd.b, da3);
                 p.textAlign(p.LEFT, p.CENTER);
                 p.textSize(10);
-                p.text(fd.name, xHigh + 16, yp(fd.high.mean));
+                p.text(fd.name, xlH + 14, yp(fd.high.mean));
             }
         }
 
