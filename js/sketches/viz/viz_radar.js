@@ -48,12 +48,22 @@ window.VizRadar = {
                 p.vertex(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
             }
             p.endShape();
-            // % label only along the top (Research) spoke, offset right so it clears the line
             p.noStroke();
             p.fill(120, 120, 135);
-            p.textAlign(p.LEFT, p.CENTER);
             p.textSize(10);
+            // Research (top) spoke: show all levels
+            p.textAlign(p.LEFT, p.CENTER);
             p.text(String(lv * 25) + '%', cx + 6, cy - rr);
+            // Other spokes: show 25%–75% only (skip 100% to avoid outer clutter)
+            if (lv < 4) {
+                for (k = 1; k < N; k++) {
+                    a = ang(k);
+                    p.textAlign(p.CENTER, p.CENTER);
+                    p.text(String(lv * 25) + '%',
+                           cx + Math.cos(a) * rr + Math.cos(a + Math.PI / 2) * 9,
+                           cy + Math.sin(a) * rr + Math.sin(a + Math.PI / 2) * 9);
+                }
+            }
         }
 
         // --- axis spokes and labels ---
