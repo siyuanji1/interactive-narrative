@@ -213,7 +213,7 @@
                         // Auto-advance from section 2 at 50% progress
                         if (mappedIndex === 2) {
                             if (progress < 0.05) _autoAdvanced2 = false;
-                            if (progress >= 0.50 && !_autoAdvanced2 && !_autoLock2) {
+                            if (progress >= 0.35 && !_autoAdvanced2 && !_autoLock2) {
                                 _autoAdvanced2 = true;
                                 _autoLock2 = true;
                                 var steps2 = sc.steps || [];
