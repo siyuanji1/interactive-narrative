@@ -103,15 +103,22 @@
                 }
             }
 
-            // Draw dots
+            // Draw dots — scale up and brighten when near cursor
             p.noStroke();
             _dots.forEach(function (d) {
-                // soft outer glow
-                p.fill(d.c.r, d.c.g, d.c.b, 40);
-                p.circle(ox + d.x, oy + d.y, d.r * 4);
+                var dx = d.x - mx, dy = d.y - my;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                var proximity = dist < _REPEL ? (1 - dist / _REPEL) : 0;
+                var drawR  = d.r * (1 + proximity * 3.0);
+                var coreA  = Math.round(200 + proximity * 55);
+                var glowA  = Math.round(40  + proximity * 120);
+                var glowR  = drawR * (2.5 + proximity * 1.5);
+                // outer glow
+                p.fill(d.c.r, d.c.g, d.c.b, glowA);
+                p.circle(ox + d.x, oy + d.y, glowR);
                 // solid core
-                p.fill(d.c.r, d.c.g, d.c.b, 200);
-                p.circle(ox + d.x, oy + d.y, d.r * 2);
+                p.fill(d.c.r, d.c.g, d.c.b, coreA);
+                p.circle(ox + d.x, oy + d.y, drawR * 2);
             });
 
             // ── Title block (top area above dots) ──
@@ -119,22 +126,22 @@
             p.noStroke();
             p.fill(18, 18, 18);
             p.textAlign(p.CENTER, p.CENTER);
-            p.textSize(Math.min(36, W * 0.065));
+            p.textSize(Math.min(44, W * 0.075));
             p.textStyle(p.BOLD);
             p.text('Students & ChatGPT', cx, titleY);
             p.textStyle(p.NORMAL);
 
             p.fill(100, 100, 110);
-            p.textSize(Math.min(14, W * 0.026));
-            p.text('A Global Perspective', cx, titleY + Math.min(36, W * 0.065) * 0.85);
+            p.textSize(Math.min(17, W * 0.030));
+            p.text('A Global Perspective', cx, titleY + Math.min(44, W * 0.075) * 0.85);
 
             // ── Legend (4 field colors, centered below title) ──
             var legendLabels = ['Social Sciences', 'Applied Sciences', 'Arts & Humanities', 'Natural Sciences'];
             var legendY = titleY + Math.min(36, W * 0.065) * 0.85 + 22;
             var totalLegW = 0;
-            var dotS = 8, dotGap = 5, lblGap = 14;
+            var dotS = 10, dotGap = 5, lblGap = 16;
             // measure
-            p.textSize(10);
+            p.textSize(13);
             legendLabels.forEach(function (lbl) { totalLegW += dotS + dotGap + p.textWidth(lbl) + lblGap; });
             totalLegW -= lblGap;
             var lx = cx - totalLegW / 2;
@@ -145,7 +152,7 @@
                 p.circle(lx + dotS / 2, legendY, dotS);
                 p.fill(80, 80, 90);
                 p.textAlign(p.LEFT, p.CENTER);
-                p.textSize(10);
+                p.textSize(13);
                 p.text(lbl, lx + dotS + dotGap, legendY);
                 lx += dotS + dotGap + p.textWidth(lbl) + lblGap;
             });
@@ -154,7 +161,7 @@
             var hintA = 120 + 50 * Math.sin(elapsed * 1.5);
             p.fill(160, 160, 175, hintA);
             p.textAlign(p.CENTER, p.CENTER);
-            p.textSize(10);
+            p.textSize(13);
             p.text('hover over the dots to interact · each dot = a student', cx, oy + H * 0.87);
 
             // ── Animated stat counters ──
@@ -176,14 +183,14 @@
                 p.noStroke();
                 p.fill(22, 22, 28);
                 p.textAlign(p.CENTER, p.CENTER);
-                p.textSize(Math.min(20, W * 0.036));
+                p.textSize(Math.min(26, W * 0.044));
                 p.textStyle(p.BOLD);
                 p.text(fmt, sx, stripY);
                 p.textStyle(p.NORMAL);
 
                 p.fill(130, 130, 145);
-                p.textSize(9);
-                p.text(s.label, sx, stripY + 17);
+                p.textSize(12);
+                p.text(s.label, sx, stripY + 20);
             });
 
             // ── Scroll cue ──
@@ -191,7 +198,7 @@
             p.noStroke();
             p.fill(160, 160, 175, breathe);
             p.textAlign(p.CENTER, p.BOTTOM);
-            p.textSize(10);
+            p.textSize(13);
             p.text('scroll to explore ↓', cx, oy + H - 6);
         }
     };
