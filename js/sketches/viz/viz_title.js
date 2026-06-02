@@ -189,7 +189,7 @@
             // ── "hover to interact" hint — below stats ──
             p.fill(80, 80, 90);
             p.textAlign(p.CENTER, p.CENTER);
-            p.textSize(14);
+            p.textSize(17);
             p.text('hover over the dots to interact · each dot = a student', cx, stripY + 42);
 
         }
