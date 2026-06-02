@@ -280,22 +280,28 @@
                 p.rect(pt.x - CARD/2, pt.y - CARD/2, CARD, CARD, 1.5);
             });
 
-            // Field labels — percentage text dark and larger
+            // Field labels
             FIELDS.forEach(function (fdef, fi) {
                 var fd    = fu[fdef.id];
                 if (!fd) return;
                 var rowCy = oy + TOP_PAD + fi * rowH + rowH / 2;
                 p.noStroke();
                 p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
-                p.rect(ox + 6, rowCy - 15, 11, 11, 2);
+                p.rect(ox + 6, rowCy - 6, 11, 11, 2);
                 p.fill(25);
                 p.textAlign(p.LEFT, p.CENTER);
                 p.textSize(Math.min(12, rowH * 0.22));
-                p.text(fdef.short, ox + 21, rowCy - 9);
-                // Dark, always-visible percentage
-                p.fill(40, 40, 40);
-                p.textSize(12);
-                p.text(fd.pct_used.toFixed(1) + '% used AI', ox + 21, rowCy + 8);
+                p.text(fdef.short, ox + 21, rowCy);
+                // Percentage centered at the midline divider
+                p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
+                p.textAlign(p.CENTER, p.CENTER);
+                p.textSize(13);
+                p.textStyle(p.BOLD);
+                p.text(fd.pct_used.toFixed(1) + '%', midX, rowCy - 8);
+                p.textStyle(p.NORMAL);
+                p.fill(100, 100, 110);
+                p.textSize(10);
+                p.text('used AI', midX, rowCy + 8);
             });
 
             // Filter buttons
@@ -303,11 +309,11 @@
                 var usedOn = filter === 'used';
                 var notOn  = filter === 'notused';
 
-                // "Using AI" — purple (distinct from all field colors)
+                // "Using AI" — teal
                 p.noStroke();
-                p.fill(usedOn ? 100 : 230, usedOn ? 60 : 220, usedOn ? 200 : 245);
+                p.fill(usedOn ? 20 : 210, usedOn ? 130 : 240, usedOn ? 110 : 230);
                 p.rect(btns.used.x, btns.used.y, btns.used.w, btns.used.h, 5);
-                p.fill(usedOn ? 255 : 80, usedOn ? 255 : 50, usedOn ? 255 : 170);
+                p.fill(usedOn ? 255 : 20, usedOn ? 255 : 110, usedOn ? 255 : 90);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.textSize(11);
                 p.text('Using AI', btns.used.x + btns.used.w / 2, btns.used.y + btns.used.h / 2);
