@@ -10,7 +10,7 @@ window.VizLollipop = (function () {
   ];
 
   const PROD_COL  = [29, 158, 117];
-  const THINK_COL = [224, 75,  74];
+  const THINK_COL = [70, 130, 200];
   const NEUTRAL   = 3;
   const X_MIN = 1, X_MAX = 5;
 
@@ -175,9 +175,9 @@ window.VizLollipop = (function () {
       drawLollipops(p);
       drawGapAnnotation(p);
       drawLegend(p);
-      p.fill(160); p.noStroke(); p.textSize(10);
+      p.fill(30); p.noStroke(); p.textSize(9);
       p.textAlign(p.RIGHT, p.BOTTOM);
-      p.text('Real data · Q26 & Q29 · n=15,734', ox+plotW, oy+plotH+68);
+      p.text('Real data · Q26 & Q29 · n=15,734', ox+plotW, oy+plotH+82);
     }
   };
 })();
