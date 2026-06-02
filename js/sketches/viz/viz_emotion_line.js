@@ -159,18 +159,13 @@ window.VizEmotionLine = (function () {
       const lastVal=lastVals[em.key];
       if(lastVal!=null){
         const lx=xPos(USAGE_ORDER.length-1)+12;
-        const ly=labelY[em.key];
         const actualY=yPos(lastVal);
-        if(Math.abs(ly-actualY)>4){
-          p.stroke(r,g,b,80); p.strokeWeight(1);
-          p.line(xPos(USAGE_ORDER.length-1)+5,actualY,lx,ly);
-        }
         p.fill(r,g,b); p.noStroke();
         p.textAlign(p.LEFT,p.CENTER); p.textSize(12);
-        p.text(em.label+' '+(lastVal>=0?'+':'')+lastVal.toFixed(0)+'%',lx,ly);
+        p.text(em.label+' '+(lastVal>=0?'+':'')+lastVal.toFixed(0)+'%',lx,actualY);
         p.textSize(9); p.fill(r,g,b,150); p.textStyle(p.ITALIC);
-        if(em.key==='curious') p.text('rose strongly',lx,ly+13);
-        if(em.key==='anxious') p.text('barely moved',lx,ly+13);
+        if(em.key==='curious') p.text('rose strongly',lx,actualY+13);
+        if(em.key==='anxious') p.text('barely moved',lx,actualY+13);
         p.textStyle(p.NORMAL);
       }
     });
