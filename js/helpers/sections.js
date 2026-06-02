@@ -101,6 +101,8 @@
                                 inner.classList.add('is-fixed');
                                 inner.style.left  = r.left + 'px';
                                 inner.style.width = r.width + 'px';
+                                inner.style.top   = '50%';
+                                inner.style.transform = 'translateY(-50%)';
                             } else {
                                 inner.classList.remove('is-fixed');
                                 inner.style.left  = '';
