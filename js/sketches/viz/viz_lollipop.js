@@ -101,7 +101,7 @@ window.VizLollipop = (function () {
 
       if (isHov) {
         const tw=200, th=50, pad=8;
-        const tx=Math.min(x+36, ox+plotW-tw-4), ty=y-th/2;
+        const tx=ox, ty=y-th/2;
         p.fill(30,30,36,220); p.stroke(80); p.strokeWeight(1);
         p.rect(tx,ty,tw,th,6);
         p.noStroke(); p.fill(255); p.textSize(12); p.textAlign(p.LEFT,p.TOP);
