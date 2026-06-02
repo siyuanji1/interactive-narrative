@@ -152,7 +152,7 @@ window.VizJobConfidence = {
         p.fill(155, 155, 155);
         p.textAlign(p.CENTER, p.TOP);
         p.textSize(9);
-        p.text('Bar = interquartile range (Q1–Q3)   ·   Dot = mean', ox + W / 2, padB + 10);
+        p.text('Bar = confidence interval   ·   Dot = mean', ox + W / 2, padB + 10);
 
         // Chart title
         p.noStroke();
