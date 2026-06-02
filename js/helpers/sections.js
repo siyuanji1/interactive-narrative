@@ -160,6 +160,8 @@
                         if (visualController) visualController.handleActive(mappedIndex);
                     });
 
+                    var _autoAdvanced = false;
+                    var _autoLock = false;
                     sc.on('progress', function (index, progress) {
                         // Map index to any per-section activeIndex so the sketch receives
                         // a consistent activeIndex value during progress updates.
@@ -171,6 +173,20 @@
                                 if (!isNaN(parsed)) mappedIndex = parsed;
                             }
                         } catch (e) { /* ignore */ }
+
+                        // Auto-advance from section 0 at 60% progress.
+                        // Only reset the flag when user scrolls back to near the top of section 0,
+                        // so the smooth-scroll animation doesn't re-trigger it.
+                        if (mappedIndex === 0) {
+                            if (progress < 0.05) _autoAdvanced = false;
+                            if (progress >= 0.60 && !_autoAdvanced && !_autoLock) {
+                                _autoAdvanced = true;
+                                _autoLock = true;
+                                var nextStep = sc.steps && sc.steps[1];
+                                if (nextStep) nextStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                setTimeout(function () { _autoLock = false; }, 1000);
+                            }
+                        }
 
                         if (window.__sketchAPI && window.__sketchAPI.setState) {
                             window.__sketchAPI.setState({ progress: progress, activeIndex: mappedIndex });
