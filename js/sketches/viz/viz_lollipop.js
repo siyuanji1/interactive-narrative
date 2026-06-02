@@ -13,9 +13,14 @@ window.VizLollipop = (function () {
   const THINK_COL = [70, 130, 200];
   const NEUTRAL   = 3;
   const X_MIN = 1, X_MAX = 5;
+  const ANIM_DURATION = 1000;
+  const STAGGER = 120;
 
   let margin, plotW, plotH, ox, oy, lastP = null;
   let hoveredItem = null;
+  let animStart = null, lastAi = null;
+
+  function easeOut(t){ return 1 - Math.pow(1-t, 3); }
 
   function computeLayout(p) {
     margin = { top: 80, right: 120, bottom: 80, left: 200 };
@@ -69,9 +74,18 @@ window.VizLollipop = (function () {
 
   function drawLollipops(p) {
     const nx = xPos(NEUTRAL);
+    const elapsed = animStart ? Date.now() - animStart : ANIM_DURATION * 10;
+
     SKILLS.forEach((sk, i) => {
-      const y   = yPos(i);
-      const x   = xPos(sk.score);
+      const itemDelay = i * STAGGER;
+      const itemElapsed = Math.max(0, elapsed - itemDelay);
+      const t = easeOut(Math.min(1, itemElapsed / ANIM_DURATION));
+
+      const y     = yPos(i);
+      const xFull = xPos(sk.score);
+      const x     = p.lerp(nx, xFull, t);
+      const dotR  = p.lerp(0, 16, t);
+
       const col = sk.type === 'productivity' ? PROD_COL : THINK_COL;
       const [r,g,b] = col;
       const isHov = hoveredItem === i;
@@ -82,15 +96,22 @@ window.VizLollipop = (function () {
         p.rect(ox-10, y-26, plotW+130, 52, 4);
       }
 
-      p.stroke(r,g,b,alpha*0.7); p.strokeWeight(isHov?2.5:2);
-      p.line(nx, y, x, y);
+      // stem
+      if (t > 0) {
+        p.stroke(r,g,b,alpha*0.7); p.strokeWeight(isHov?2.5:2);
+        p.line(nx, y, x, y);
+      }
 
-      p.noStroke(); p.fill(r,g,b,alpha);
-      p.circle(x, y, isHov?22:16);
+      // dot
+      if (t > 0) {
+        p.noStroke(); p.fill(r,g,b,alpha);
+        p.circle(x, y, isHov ? 22 : dotR);
+      }
 
+      // labels always visible
       p.fill(r,g,b,alpha); p.textAlign(p.LEFT,p.CENTER);
       p.textSize(isHov?15:13); p.textStyle(isHov?p.BOLD:p.NORMAL);
-      p.text(sk.score.toFixed(2), x+16, y);
+      p.text(sk.score.toFixed(2), xFull+16, y);
       p.textStyle(p.NORMAL);
 
       p.noStroke(); p.fill(isHov?20:60, alpha);
@@ -99,6 +120,7 @@ window.VizLollipop = (function () {
       p.text(sk.label, ox-12, y);
       p.textStyle(p.NORMAL);
 
+      // tooltip
       if (isHov) {
         const tw=200, th=50, pad=8;
         const tx=ox, ty=y-th/2;
@@ -113,9 +135,6 @@ window.VizLollipop = (function () {
   }
 
   function drawGapAnnotation(p) {
-    const prodAvg  = SKILLS.filter(s=>s.type==='productivity').reduce((a,s)=>a+s.score,0)/3;
-    const thinkAvg = SKILLS.filter(s=>s.type==='thinking').reduce((a,s)=>a+s.score,0)/3;
-
     const rx = ox + plotW + 16;
     const y0 = yPos(0), y5 = yPos(5);
     const prodMidY  = (yPos(0)+yPos(2))/2;
@@ -161,6 +180,12 @@ window.VizLollipop = (function () {
   return {
     draw: function (p, manager, ai, progress) {
       if (ai !== 5) return;
+
+      if (lastAi !== ai) {
+        lastAi = ai;
+        animStart = Date.now();
+      }
+
       if (lastP !== p) { lastP = p; computeLayout(p); }
       checkHover(p);
       p.background(255);
