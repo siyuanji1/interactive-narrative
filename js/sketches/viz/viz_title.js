@@ -193,13 +193,6 @@
             p.textSize(11);
             p.text('hover over the dots to interact · each dot = a student', cx, stripY + 42);
 
-            // ── Scroll cue ──
-            var breathe = 130 + 70 * Math.sin(elapsed * 2);
-            p.noStroke();
-            p.fill(160, 160, 175, breathe);
-            p.textAlign(p.CENTER, p.BOTTOM);
-            p.textSize(13);
-            p.text('scroll to explore ↓', cx, oy + H - 6);
         }
     };
 })();
