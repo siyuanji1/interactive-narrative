@@ -14,7 +14,7 @@
     var _REPEL  = 90;  // repel radius px
 
     function initDots(W, H, cx, cy) {
-        var cloudR  = H * 0.22;
+        var cloudR  = H * 0.30;
         var golden  = Math.PI * (3 - Math.sqrt(5));
         var dots    = [];
         var fi      = 0;
