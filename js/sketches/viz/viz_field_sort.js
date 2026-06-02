@@ -281,12 +281,15 @@
             });
 
             // Field labels
-            var usedMidX = (chartL + midX) / 2; // center of the Using AI section
+            var usedMidX = (chartL + midX) / 2;       // center of Using AI section
+            var notMidX  = midX + chartW * 0.25;       // center of Not Using AI section
             FIELDS.forEach(function (fdef, fi) {
                 var fd       = fu[fdef.id];
                 if (!fd) return;
                 var rowCy    = oy + TOP_PAD + fi * rowH + rowH / 2;
-                var rowBot   = oy + TOP_PAD + (fi + 1) * rowH - 10;
+                var sepY     = oy + TOP_PAD + (fi + 1) * rowH; // row separator
+                var pctY     = sepY - 28; // percentage number above separator
+                var lblY     = sepY - 12; // "used AI" / "not using AI" label
                 p.noStroke();
                 p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
                 p.rect(ox + 6, rowCy - 6, 11, 11, 2);
@@ -294,16 +297,29 @@
                 p.textAlign(p.LEFT, p.CENTER);
                 p.textSize(Math.min(12, rowH * 0.22));
                 p.text(fdef.short, ox + 21, rowCy);
-                // Percentage below the cards, centered in the Using AI section
+
+                // Using AI percentage
                 p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.textSize(13);
                 p.textStyle(p.BOLD);
-                p.text(fd.pct_used.toFixed(1) + '%', usedMidX, rowBot - 7);
+                p.text(fd.pct_used.toFixed(1) + '%', usedMidX, pctY);
                 p.textStyle(p.NORMAL);
                 p.fill(100, 100, 110);
                 p.textSize(10);
-                p.text('used AI', usedMidX, rowBot + 7);
+                p.text('using AI', usedMidX, lblY);
+
+                // Not Using AI percentage
+                var notPct = (100 - fd.pct_used).toFixed(1);
+                p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
+                p.textAlign(p.CENTER, p.CENTER);
+                p.textSize(13);
+                p.textStyle(p.BOLD);
+                p.text(notPct + '%', notMidX, pctY);
+                p.textStyle(p.NORMAL);
+                p.fill(100, 100, 110);
+                p.textSize(10);
+                p.text('not using AI', notMidX, lblY);
             });
 
             // Filter buttons
