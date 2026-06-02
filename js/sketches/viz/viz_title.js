@@ -158,8 +158,8 @@
             });
 
             // ── "hover to interact" hint ──
-            var hintA = 180 + 55 * Math.sin(elapsed * 1.5);
-            p.fill(22, 22, 28, hintA);
+            var hintA = 120 + 50 * Math.sin(elapsed * 1.5);
+            p.fill(160, 160, 175, hintA);
             p.textAlign(p.CENTER, p.CENTER);
             p.textSize(13);
             p.text('hover over the dots to interact · each dot = a student', cx, oy + H * 0.76);
