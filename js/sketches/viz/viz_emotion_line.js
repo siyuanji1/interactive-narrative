@@ -12,7 +12,7 @@ window.VizEmotionLine = (function () {
   };
 
   const CURIOUS_COL = [14, 116, 144];   // deep teal
-  const ANXIOUS_COL = [217, 119, 6];    // warm orange
+  const ANXIOUS_COL = [190, 50, 110];   // magenta/rose
 
   let rawData = null, aggData = {}, activeField = 'All';
   let margin, plotW, plotH, ox, oy, lastP = null, buttons = [];
