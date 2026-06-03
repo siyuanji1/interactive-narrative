@@ -3,10 +3,23 @@ window.VizEmotionLine = (function () {
   const USAGE_ORDER = ['Rarely','Occasionally','Moderately','Considerably','Extensively'];
   const FIELDS = ['Applied Sciences','Social Sciences','Arts & Humanities','Natural & Life Sciences'];
 
+  // field button colors (matching the field palette)
+  const FIELD_COLORS = {
+    'All':                     [90, 90, 110],
+    'Applied Sciences':        [40, 140, 80],
+    'Social Sciences':         [50, 100, 180],
+    'Arts & Humanities':       [180, 60, 90],
+    'Natural & Life Sciences': [190, 120, 20],
+  };
+
+  // emotion line colors: teal vs orange (colorblind-safe, high contrast)
+  const CURIOUS_COL = [14, 116, 144];   // deep teal
+  const ANXIOUS_COL = [217, 119, 6];    // warm orange
+
   let rawData = null, aggData = {}, activeField = 'All';
   let margin, plotW, plotH, ox, oy, lastP = null, buttons = [];
   let animStart = null, lastAi = null;
-  const ANIM_DURATION = 1200; // ms
+  const ANIM_DURATION = 1200;
   const minPct = -10, maxPct = 40;
 
   function loadData(cb) {
@@ -32,7 +45,7 @@ window.VizEmotionLine = (function () {
 
   function buildButtons(p) {
     buttons=[];
-    const labels=['All',...FIELDS], bw=140,bh=28,gap=8;
+    const labels=['All',...FIELDS], bw=160,bh=28,gap=8;
     let bx=ox, by=oy+plotH+margin.bottom-10;
     labels.forEach(label=>{
       if(bx+bw>p.width-10){bx=ox;by+=bh+gap;}
@@ -67,8 +80,33 @@ window.VizEmotionLine = (function () {
     p.text('Change from baseline (Rarely = 0%)',0,0); p.pop();
     p.textAlign(p.CENTER,p.TOP); p.textSize(11); p.fill(60);
     USAGE_ORDER.forEach((l,i)=>p.text(l,xPos(i),oy+plotH+10));
-    p.textSize(12); p.fill(100);
-    p.text('AI usage level (Q15)',ox+plotW/2,oy+plotH+32);
+    // NOTE: "AI usage level (Q15)" label removed — moved to citation text in index.html
+  }
+
+  // draw the "All" reference line in light gray (background comparison)
+  function drawReferenceLines(p) {
+    if (activeField === 'All') return;
+    const ref = aggData['All'];
+    if (!ref) return;
+    ['curious','anxious'].forEach(key=>{
+      p.stroke(190,190,190,180); p.strokeWeight(2); p.noFill();
+      p.beginShape();
+      USAGE_ORDER.forEach((u,i)=>{
+        const val = ref[u]?ref[u][key]:null;
+        if(val==null) return;
+        p.vertex(xPos(i),yPos(val));
+      });
+      p.endShape();
+    });
+    // label for the gray reference
+    const lastU = USAGE_ORDER[USAGE_ORDER.length-1];
+    const cv = ref[lastU]?ref[lastU]['curious']:null;
+    if(cv!=null){
+      p.fill(170); p.noStroke(); p.textSize(9); p.textStyle(p.ITALIC);
+      p.textAlign(p.LEFT,p.CENTER);
+      p.text('(all fields avg)', xPos(USAGE_ORDER.length-1)+12, yPos(cv)-12);
+      p.textStyle(p.NORMAL);
+    }
   }
 
   function drawLines(p, animProg) {
@@ -77,8 +115,8 @@ window.VizEmotionLine = (function () {
     const totalPoints = USAGE_ORDER.length - 1;
 
     const EMOTIONS = [
-      { key: 'curious', label: 'Curious', color: [34, 139, 34] },
-      { key: 'anxious', label: 'Anxious', color: [210, 60, 60] },
+      { key: 'curious', label: 'Curious', color: CURIOUS_COL, dashed: false },
+      { key: 'anxious', label: 'Anxious', color: ANXIOUS_COL, dashed: true  },
     ];
 
     const lastU = USAGE_ORDER[USAGE_ORDER.length-1];
@@ -86,7 +124,15 @@ window.VizEmotionLine = (function () {
     EMOTIONS.forEach(em=>{
       const [r,g,b]=em.color;
 
-      p.stroke(r,g,b,230); p.strokeWeight(3); p.noFill();
+      // line style: curious = bold solid, anxious = dashed
+      if(em.dashed){
+        p.drawingContext.setLineDash([6,6]);
+        p.strokeWeight(2.5);
+      } else {
+        p.drawingContext.setLineDash([]);
+        p.strokeWeight(4);
+      }
+      p.stroke(r,g,b,235); p.noFill();
       p.beginShape();
       for(let i=0; i<USAGE_ORDER.length; i++){
         const u = USAGE_ORDER[i];
@@ -102,6 +148,7 @@ window.VizEmotionLine = (function () {
         if(segProg < 1) break;
       }
       p.endShape();
+      p.drawingContext.setLineDash([]);
 
       // dots
       USAGE_ORDER.forEach((u,i)=>{
@@ -120,8 +167,9 @@ window.VizEmotionLine = (function () {
           const lx=xPos(USAGE_ORDER.length-1)+12;
           const actualY=yPos(lastVal);
           p.fill(r,g,b); p.noStroke();
-          p.textAlign(p.LEFT,p.CENTER); p.textSize(12);
+          p.textAlign(p.LEFT,p.CENTER); p.textSize(12); p.textStyle(p.BOLD);
           p.text(em.label+' '+(lastVal>=0?'+':'')+lastVal.toFixed(0)+'%',lx,actualY);
+          p.textStyle(p.NORMAL);
           p.textSize(9); p.fill(r,g,b,150); p.textStyle(p.ITALIC);
           if(em.key==='curious') p.text('rose strongly',lx,actualY+13);
           if(em.key==='anxious') p.text('barely moved',lx,actualY+13);
@@ -132,25 +180,40 @@ window.VizEmotionLine = (function () {
   }
 
   function drawLegend(p) {
-    const items=[{label:'Curious',col:[34,139,34]},{label:'Anxious',col:[210,60,60]}];
+    const items=[
+      {label:'Curious', col:CURIOUS_COL, dashed:false},
+      {label:'Anxious', col:ANXIOUS_COL, dashed:true},
+    ];
     let lx=ox, ly=oy-32;
     items.forEach(item=>{
       const [r,g,b]=item.col;
-      p.stroke(r,g,b); p.strokeWeight(3); p.line(lx,ly,lx+20,ly);
-      p.fill(r,g,b); p.noStroke(); p.circle(lx+10,ly,8);
+      p.stroke(r,g,b);
+      p.strokeWeight(item.dashed?2.5:4);
+      if(item.dashed) p.drawingContext.setLineDash([5,5]);
+      p.line(lx,ly,lx+22,ly);
+      p.drawingContext.setLineDash([]);
+      p.fill(r,g,b); p.noStroke(); p.circle(lx+11,ly,8);
       p.fill(50); p.textSize(11); p.textAlign(p.LEFT,p.CENTER);
-      p.text(item.label,lx+26,ly); lx+=p.textWidth(item.label)+48;
+      p.text(item.label,lx+30,ly); lx+=p.textWidth(item.label)+56;
     });
   }
 
   function drawButtons(p) {
     buttons.forEach(b=>{
       const active=b.label===activeField;
-      p.fill(active?60:245); p.stroke(active?60:200); p.strokeWeight(1);
+      const [r,g,b2]=FIELD_COLORS[b.label]||[90,90,110];
+      if(active){
+        p.fill(r,g,b2); p.stroke(r,g,b2);
+      } else {
+        p.fill(255); p.stroke(r,g,b2,180);
+      }
+      p.strokeWeight(1.5);
       p.rect(b.x,b.y,b.w,b.h,4);
-      p.fill(active?255:70); p.noStroke();
-      p.textAlign(p.CENTER,p.CENTER); p.textSize(10);
+      p.fill(active?255:[r,g,b2]); p.noStroke();
+      if(!active){ p.fill(r,g,b2); }
+      p.textAlign(p.CENTER,p.CENTER); p.textSize(11); p.textStyle(p.BOLD);
       p.text(b.label,b.x+b.w/2,b.y+b.h/2);
+      p.textStyle(p.NORMAL);
     });
   }
 
@@ -158,7 +221,6 @@ window.VizEmotionLine = (function () {
     draw: function(p, manager, ai, progress) {
       if(ai!==3) return;
 
-      // reset animation when section becomes active
       if(lastAi !== ai){
         lastAi = ai;
         animStart = Date.now();
@@ -177,7 +239,7 @@ window.VizEmotionLine = (function () {
         buttons.forEach(b=>{
           if(p.mouseX>b.x&&p.mouseX<b.x+b.w&&p.mouseY>b.y&&p.mouseY<b.y+b.h) activeField=b.label;
         });
-        if(activeField !== prevField) animStart = Date.now(); // replay on field change
+        if(activeField !== prevField) animStart = Date.now();
       }
 
       const elapsed = animStart ? Date.now() - animStart : ANIM_DURATION;
@@ -185,7 +247,9 @@ window.VizEmotionLine = (function () {
       const animProg = easeOut(rawT);
 
       p.background(255);
-      drawGrid(p); drawAxes(p); drawLines(p, animProg); drawLegend(p); drawButtons(p);
+      drawGrid(p); drawAxes(p);
+      drawReferenceLines(p);
+      drawLines(p, animProg); drawLegend(p); drawButtons(p);
     }
   };
 })();
