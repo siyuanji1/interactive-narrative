@@ -188,7 +188,7 @@
                         // so the smooth-scroll animation doesn't re-trigger it.
                         if (mappedIndex === 0) {
                             if (progress < 0.05) _autoAdvanced = false;
-                            if (progress >= 0.60 && !_autoAdvanced && !_autoLock) {
+                            if (progress >= 0.40 && !_autoAdvanced && !_autoLock) {
                                 _autoAdvanced = true;
                                 _autoLock = true;
                                 var nextStep = sc.steps && sc.steps[1];
