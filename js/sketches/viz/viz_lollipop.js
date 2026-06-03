@@ -9,8 +9,8 @@ window.VizLollipop = (function () {
     { label: 'Critical thinking',  score: 3.037, type: 'thinking',     q: 'Q29e' },
   ];
 
-  const PROD_COL  = [51, 92, 129];    // deep slate blue
-  const THINK_COL = [150, 165, 180];  // light gray-blue
+  const PROD_COL  = [51, 92, 129];
+  const THINK_COL = [150, 165, 180];
   const NEUTRAL   = 3;
   const X_MIN = 1, X_MAX = 5;
   const ANIM_DURATION = 1000;
@@ -23,7 +23,7 @@ window.VizLollipop = (function () {
   function easeOut(t){ return 1 - Math.pow(1-t, 3); }
 
   function computeLayout(p) {
-    margin = { top: 110, right: 80, bottom: 110, left: 200 };
+    margin = { top: 150, right: 180, bottom: 110, left: 200 };
     plotW  = p.width  - margin.left - margin.right;
     plotH  = p.height - margin.top  - margin.bottom;
     ox     = margin.left;
@@ -38,16 +38,6 @@ window.VizLollipop = (function () {
     return oy + baseRowH * (i + 1.8);
   }
 
-  function drawBackgroundZones(p) {
-    const nx = xPos(NEUTRAL);
-    p.textSize(10); p.textAlign(p.LEFT, p.TOP);
-    p.fill(29, 158, 117, 130);
-    p.text('AI helps ↑', nx + 8, oy - 6);
-    p.textAlign(p.RIGHT, p.TOP);
-    p.fill(224, 75, 74, 130);
-    p.text('↓ neutral', nx - 8, oy - 6);
-  }
-
   function drawGrid(p) {
     [1, 2, 3, 4, 5].forEach(v => {
       const x = xPos(v);
@@ -60,7 +50,6 @@ window.VizLollipop = (function () {
     });
     p.fill(80); p.textSize(12); p.textAlign(p.CENTER, p.TOP);
     p.text('Neutral (3)', xPos(NEUTRAL), oy+plotH+28);
-    // axis citation moved to index.html left text
   }
 
   function drawSeparator(p) {
@@ -69,6 +58,19 @@ window.VizLollipop = (function () {
     p.drawingContext.setLineDash([5, 5]);
     p.line(ox - 10, sepY, ox + plotW, sepY);
     p.drawingContext.setLineDash([]);
+  }
+
+  function drawGapAnnotation(p) {
+    const prodAvg = (3.584+3.545+3.539)/3;
+    const thinkAvg = (3.227+3.124+3.037)/3;
+    const sepY = (yPos(2)+yPos(3))/2;
+    p.noStroke(); p.textAlign(p.LEFT, p.CENTER);
+    p.fill(PROD_COL[0],PROD_COL[1],PROD_COL[2]); p.textSize(12); p.textStyle(p.BOLD);
+    p.text('Productivity avg '+prodAvg.toFixed(2), ox+plotW+15, sepY-12);
+    p.fill(THINK_COL[0],THINK_COL[1],THINK_COL[2]);
+    p.text('Thinking avg '+thinkAvg.toFixed(2), ox+plotW+15, sepY+6);
+    p.fill(100); p.textStyle(p.NORMAL); p.textSize(10);
+    p.text('all thinking skills sit near neutral', ox+plotW+15, sepY+24);
   }
 
   function drawLollipops(p) {
@@ -105,7 +107,6 @@ window.VizLollipop = (function () {
         p.circle(x, y, isHov ? 22 : dotR);
       }
 
-      // labels always visible
       p.fill(r,g,b,alpha); p.textAlign(p.LEFT,p.CENTER);
       p.textSize(isHov?15:13); p.textStyle(isHov?p.BOLD:p.NORMAL);
       p.text(sk.score.toFixed(2), xFull+16, y);
@@ -117,17 +118,15 @@ window.VizLollipop = (function () {
       p.text(sk.label, ox-12, y);
       p.textStyle(p.NORMAL);
 
-      // tooltip — richer info, positioned to the RIGHT of the dot
       if (isHov) {
         const tw=255, th=78, pad=10;
         const diff = sk.score - NEUTRAL;
         const interp = diff >= 0.5 ? 'clearly above neutral' :
                        diff >= 0.2 ? 'modestly above neutral' :
                                      'barely above neutral';
-        // place to the right of the dot, clamp so it stays on screen
-        let tx = x + 70;
-        if (tx + tw > ox + plotW + 90) tx = x - tw - 70;
-        const ty = y - th/2;
+        // fixed in bottom-right empty area — never overlaps data or annotations
+        const tx = ox + plotW * 0.72;
+        const ty = oy + plotH - th - 10;
         p.fill(30,30,36,235); p.stroke(80); p.strokeWeight(1);
         p.rect(tx,ty,tw,th,6);
         p.noStroke();
@@ -145,23 +144,22 @@ window.VizLollipop = (function () {
   }
 
   function drawLegend(p) {
-    // moved to bottom
     const items = [
       { label: 'Productivity skills (AI helps more)', col: PROD_COL  },
       { label: 'Thinking skills (AI helps less)',     col: THINK_COL },
     ];
     const ly = oy + plotH + 78;
-    // center the legend
+    p.textSize(15);
     let totalW = 0;
-    items.forEach(({label}) => { totalW += p.textWidth(label) + 58; });
+    items.forEach(({label}) => { totalW += p.textWidth(label) + 64; });
     let lx = ox + (plotW - totalW)/2;
     if(lx < ox) lx = ox;
     items.forEach(({ label, col }) => {
       const [r,g,b] = col;
-      p.noStroke(); p.fill(r,g,b); p.circle(lx+7, ly, 14);
-      p.fill(50); p.textSize(12); p.textAlign(p.LEFT, p.CENTER);
-      p.text(label, lx+20, ly);
-      lx += p.textWidth(label) + 58;
+      p.noStroke(); p.fill(r,g,b); p.circle(lx+9, ly, 18);
+      p.fill(50); p.textSize(15); p.textAlign(p.LEFT, p.CENTER);
+      p.text(label, lx+24, ly);
+      lx += p.textWidth(label) + 64;
     });
   }
 
@@ -187,7 +185,6 @@ window.VizLollipop = (function () {
       checkHover(p);
       p.background(255);
 
-      // title
       p.fill(30); p.noStroke(); p.textAlign(p.LEFT, p.TOP);
       p.textSize(17); p.textStyle(p.BOLD);
       p.text('AI boosts everyday productivity more than deeper thinking skills', ox, 12);
@@ -196,6 +193,7 @@ window.VizLollipop = (function () {
       drawGrid(p);
       drawSeparator(p);
       drawLollipops(p);
+      drawGapAnnotation(p);
       drawLegend(p);
     }
   };
