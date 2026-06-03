@@ -77,10 +77,16 @@ window.VizEmotionLine = (function () {
     });
     p.push(); p.translate(14,oy+plotH/2); p.rotate(-p.HALF_PI);
     p.textAlign(p.CENTER,p.CENTER); p.textSize(11); p.fill(100);
-    p.text('Change from baseline (Rarely = 0%)',0,0); p.pop();
+    p.text('Change in how often felt (vs. lightest AI users)',0,0); p.pop();
     p.textAlign(p.CENTER,p.TOP); p.textSize(11); p.fill(60);
-    USAGE_ORDER.forEach((l,i)=>p.text(l,xPos(i),oy+plotH+10));
-    // axis label moved to citation in index.html
+    USAGE_ORDER.forEach((l,i)=>{
+      const label = (l === 'Rarely') ? 'Rarely\n(baseline)' : l;
+      p.text(label, xPos(i), oy+plotH+10);
+    });
+    // small clarifying note about the baseline
+    p.textSize(9); p.fill(140); p.textStyle(p.ITALIC); p.textAlign(p.CENTER,p.TOP);
+    p.text('Baseline = lightest users\' average (curious 3.06 / anxious 2.03 on a 1\u20135 scale)', ox+plotW/2, oy+plotH+40);
+    p.textStyle(p.NORMAL);
   }
 
   // confidence interval shaded band
