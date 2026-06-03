@@ -9,8 +9,8 @@ window.VizLollipop = (function () {
     { label: 'Critical thinking',  score: 3.037, type: 'thinking',     q: 'Q29e' },
   ];
 
-  const PROD_COL  = [29, 158, 117];
-  const THINK_COL = [70, 130, 200];
+  const PROD_COL  = [51, 92, 129];    // deep slate blue
+  const THINK_COL = [150, 165, 180];  // light gray-blue
   const NEUTRAL   = 3;
   const X_MIN = 1, X_MAX = 5;
   const ANIM_DURATION = 1000;
@@ -23,7 +23,7 @@ window.VizLollipop = (function () {
   function easeOut(t){ return 1 - Math.pow(1-t, 3); }
 
   function computeLayout(p) {
-    margin = { top: 80, right: 120, bottom: 80, left: 200 };
+    margin = { top: 110, right: 80, bottom: 110, left: 200 };
     plotW  = p.width  - margin.left - margin.right;
     plotH  = p.height - margin.top  - margin.bottom;
     ox     = margin.left;
@@ -60,15 +60,14 @@ window.VizLollipop = (function () {
     });
     p.fill(80); p.textSize(12); p.textAlign(p.CENTER, p.TOP);
     p.text('Neutral (3)', xPos(NEUTRAL), oy+plotH+28);
-    p.fill(120); p.textSize(12); p.textAlign(p.CENTER, p.TOP);
-    p.text('"ChatGPT can improve my..." (1=Strongly disagree → 5=Strongly agree)', ox+plotW/2, oy+plotH+48);
+    // axis citation moved to index.html left text
   }
 
   function drawSeparator(p) {
     const sepY = (yPos(2) + yPos(3)) / 2;
     p.stroke(180); p.strokeWeight(1);
     p.drawingContext.setLineDash([5, 5]);
-    p.line(ox - 10, sepY, ox + plotW + 100, sepY);
+    p.line(ox - 10, sepY, ox + plotW, sepY);
     p.drawingContext.setLineDash([]);
   }
 
@@ -96,13 +95,11 @@ window.VizLollipop = (function () {
         p.rect(ox-10, y-26, plotW+130, 52, 4);
       }
 
-      // stem
       if (t > 0) {
         p.stroke(r,g,b,alpha*0.7); p.strokeWeight(isHov?2.5:2);
         p.line(nx, y, x, y);
       }
 
-      // dot
       if (t > 0) {
         p.noStroke(); p.fill(r,g,b,alpha);
         p.circle(x, y, isHov ? 22 : dotR);
@@ -120,51 +117,51 @@ window.VizLollipop = (function () {
       p.text(sk.label, ox-12, y);
       p.textStyle(p.NORMAL);
 
-      // tooltip
+      // tooltip — richer info, positioned to the RIGHT of the dot
       if (isHov) {
-        const tw=200, th=50, pad=8;
-        const tx=ox, ty=y-th/2;
-        p.fill(30,30,36,220); p.stroke(80); p.strokeWeight(1);
+        const tw=255, th=78, pad=10;
+        const diff = sk.score - NEUTRAL;
+        const interp = diff >= 0.5 ? 'clearly above neutral' :
+                       diff >= 0.2 ? 'modestly above neutral' :
+                                     'barely above neutral';
+        // place to the right of the dot, clamp so it stays on screen
+        let tx = x + 70;
+        if (tx + tw > ox + plotW + 90) tx = x - tw - 70;
+        const ty = y - th/2;
+        p.fill(30,30,36,235); p.stroke(80); p.strokeWeight(1);
         p.rect(tx,ty,tw,th,6);
-        p.noStroke(); p.fill(255); p.textSize(12); p.textAlign(p.LEFT,p.TOP);
+        p.noStroke();
+        p.fill(255); p.textSize(13); p.textStyle(p.BOLD); p.textAlign(p.LEFT,p.TOP);
         p.text(sk.label, tx+pad, ty+pad);
-        p.fill(r,g,b); p.textSize(11);
-        p.text('Score: '+sk.score.toFixed(3)+' ('+sk.q+')', tx+pad, ty+pad+20);
+        p.textStyle(p.NORMAL);
+        p.fill(200); p.textSize(11);
+        p.text('Score '+sk.score.toFixed(2)+'  ('+(diff>=0?'+':'')+diff.toFixed(2)+' vs neutral)', tx+pad, ty+pad+20);
+        p.fill(r,g,b);
+        p.text(interp, tx+pad, ty+pad+38);
+        p.fill(150); p.textSize(9);
+        p.text(sk.q, tx+pad, ty+pad+56);
       }
     });
   }
 
-  function drawGapAnnotation(p) {
-    const rx = ox + plotW + 16;
-    const y0 = yPos(0), y5 = yPos(5);
-    const prodMidY  = (yPos(0)+yPos(2))/2;
-    const thinkMidY = (yPos(3)+yPos(5))/2;
-
-    p.stroke(140); p.strokeWeight(1);
-    p.line(rx, y0-10, rx, y5+10);
-    p.line(rx, prodMidY,  rx+8, prodMidY);
-    p.line(rx, thinkMidY, rx+8, thinkMidY);
-
-    p.noStroke(); p.fill(60); p.textSize(10);
-    p.textAlign(p.LEFT, p.CENTER); p.textStyle(p.BOLD);
-    p.text('Productivity scores', rx+12, (prodMidY+thinkMidY)/2 - 8);
-    p.text('0.4pts higher than', rx+12, (prodMidY+thinkMidY)/2 + 8);
-    p.text('thinking skills', rx+12, (prodMidY+thinkMidY)/2 + 24);
-    p.textStyle(p.NORMAL);
-  }
-
   function drawLegend(p) {
+    // moved to bottom
     const items = [
       { label: 'Productivity skills (AI helps more)', col: PROD_COL  },
       { label: 'Thinking skills (AI helps less)',     col: THINK_COL },
     ];
-    let lx = ox, ly = oy - 46;
+    const ly = oy + plotH + 78;
+    // center the legend
+    let totalW = 0;
+    items.forEach(({label}) => { totalW += p.textWidth(label) + 58; });
+    let lx = ox + (plotW - totalW)/2;
+    if(lx < ox) lx = ox;
     items.forEach(({ label, col }) => {
       const [r,g,b] = col;
       p.noStroke(); p.fill(r,g,b); p.circle(lx+7, ly, 14);
       p.fill(50); p.textSize(12); p.textAlign(p.LEFT, p.CENTER);
       p.text(label, lx+20, ly);
-      lx += p.textWidth(label) + 38;
+      lx += p.textWidth(label) + 58;
     });
   }
 
@@ -189,15 +186,17 @@ window.VizLollipop = (function () {
       if (lastP !== p) { lastP = p; computeLayout(p); }
       checkHover(p);
       p.background(255);
-      drawBackgroundZones(p);
+
+      // title
+      p.fill(30); p.noStroke(); p.textAlign(p.LEFT, p.TOP);
+      p.textSize(17); p.textStyle(p.BOLD);
+      p.text('AI boosts everyday productivity more than deeper thinking skills', ox, 12);
+      p.textStyle(p.NORMAL);
+
       drawGrid(p);
       drawSeparator(p);
       drawLollipops(p);
-      drawGapAnnotation(p);
       drawLegend(p);
-      p.fill(30); p.noStroke(); p.textSize(9);
-      p.textAlign(p.RIGHT, p.BOTTOM);
-      p.text('Real data · Q26 & Q29 · n=15,734', ox+plotW, oy+plotH+82);
     }
   };
 })();
