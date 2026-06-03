@@ -97,8 +97,7 @@
                         document.querySelectorAll('.step').forEach(function (el, i) {
                             var inner = el.querySelector('.step-inner');
                             if (!inner) return;
-                            var isTall = el.offsetHeight > window.innerHeight * 1.1;
-                            if (i === index && r && isTall) {
+                            if (i === index && r) {
                                 inner.classList.add('is-fixed');
                                 inner.style.left      = r.left + 'px';
                                 inner.style.width     = r.width + 'px';
