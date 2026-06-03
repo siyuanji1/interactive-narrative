@@ -169,6 +169,8 @@
                     var _autoLock3 = false;
                     var _autoAdvanced5 = false;
                     var _autoLock5 = false;
+                    var _autoAdvanced6 = false;
+                    var _autoLock6 = false;
                     sc.on('progress', function (index, progress) {
                         // Map index to any per-section activeIndex so the sketch receives
                         // a consistent activeIndex value during progress updates.
@@ -264,6 +266,24 @@
                                     }
                                 }
                                 setTimeout(function () { _autoLock5 = false; }, 1000);
+                            }
+                        }
+
+                        // Auto-advance from section 6 at 60% progress
+                        if (mappedIndex === 6) {
+                            if (progress < 0.05) _autoAdvanced6 = false;
+                            if (progress >= 0.60 && !_autoAdvanced6 && !_autoLock6) {
+                                _autoAdvanced6 = true;
+                                _autoLock6 = true;
+                                var steps6 = sc.steps || [];
+                                for (var si6 = 0; si6 < steps6.length; si6++) {
+                                    if (steps6[si6].dataset && parseInt(steps6[si6].dataset.activeIndex, 10) === 6) {
+                                        var ns6 = steps6[si6 + 1];
+                                        if (ns6) ns6.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        break;
+                                    }
+                                }
+                                setTimeout(function () { _autoLock6 = false; }, 1000);
                             }
                         }
 
