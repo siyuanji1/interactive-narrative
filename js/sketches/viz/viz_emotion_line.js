@@ -3,7 +3,6 @@ window.VizEmotionLine = (function () {
   const USAGE_ORDER = ['Rarely','Occasionally','Moderately','Considerably','Extensively'];
   const FIELDS = ['Applied Sciences','Social Sciences','Arts & Humanities','Natural & Life Sciences'];
 
-  // field button colors (matching the field palette)
   const FIELD_COLORS = {
     'All':                     [90, 90, 110],
     'Applied Sciences':        [40, 140, 80],
@@ -12,7 +11,6 @@ window.VizEmotionLine = (function () {
     'Natural & Life Sciences': [190, 120, 20],
   };
 
-  // emotion line colors: teal vs orange (colorblind-safe, high contrast)
   const CURIOUS_COL = [14, 116, 144];   // deep teal
   const ANXIOUS_COL = [217, 119, 6];    // warm orange
 
@@ -32,7 +30,7 @@ window.VizEmotionLine = (function () {
     rawData.forEach(d=>{
       if(!aggData[d.field]) aggData[d.field]={};
       if(!aggData[d.field][d.usage]) aggData[d.field][d.usage]={};
-      aggData[d.field][d.usage][d.emotion]=d.pct_change;
+      aggData[d.field][d.usage][d.emotion]={pct:d.pct_change, lo:d.ci_low, hi:d.ci_high};
     });
   }
 
@@ -58,6 +56,8 @@ window.VizEmotionLine = (function () {
 
   function easeOut(t){ return 1 - Math.pow(1-t, 3); }
 
+  function getVal(data, u, key){ return data[u] && data[u][key] ? data[u][key] : null; }
+
   function drawGrid(p) {
     [-10,0,10,20,30,40].forEach(v=>{
       if(v<minPct||v>maxPct) return;
@@ -80,10 +80,27 @@ window.VizEmotionLine = (function () {
     p.text('Change from baseline (Rarely = 0%)',0,0); p.pop();
     p.textAlign(p.CENTER,p.TOP); p.textSize(11); p.fill(60);
     USAGE_ORDER.forEach((l,i)=>p.text(l,xPos(i),oy+plotH+10));
-    // NOTE: "AI usage level (Q15)" label removed — moved to citation text in index.html
+    // axis label moved to citation in index.html
   }
 
-  // draw the "All" reference line in light gray (background comparison)
+  // confidence interval shaded band
+  function drawCI(p, data, key, col){
+    const [r,g,b]=col;
+    p.noStroke(); p.fill(r,g,b,38);
+    p.beginShape();
+    // top edge (hi)
+    USAGE_ORDER.forEach((u,i)=>{
+      const d=getVal(data,u,key); if(!d) return;
+      p.vertex(xPos(i), yPos(d.hi));
+    });
+    // bottom edge (lo), reversed
+    for(let i=USAGE_ORDER.length-1;i>=0;i--){
+      const d=getVal(data,USAGE_ORDER[i],key); if(!d) continue;
+      p.vertex(xPos(i), yPos(d.lo));
+    }
+    p.endShape(p.CLOSE);
+  }
+
   function drawReferenceLines(p) {
     if (activeField === 'All') return;
     const ref = aggData['All'];
@@ -92,19 +109,17 @@ window.VizEmotionLine = (function () {
       p.stroke(190,190,190,180); p.strokeWeight(2); p.noFill();
       p.beginShape();
       USAGE_ORDER.forEach((u,i)=>{
-        const val = ref[u]?ref[u][key]:null;
-        if(val==null) return;
-        p.vertex(xPos(i),yPos(val));
+        const d=getVal(ref,u,key); if(!d) return;
+        p.vertex(xPos(i),yPos(d.pct));
       });
       p.endShape();
     });
-    // label for the gray reference
     const lastU = USAGE_ORDER[USAGE_ORDER.length-1];
-    const cv = ref[lastU]?ref[lastU]['curious']:null;
-    if(cv!=null){
+    const cv = getVal(ref,lastU,'curious');
+    if(cv){
       p.fill(170); p.noStroke(); p.textSize(9); p.textStyle(p.ITALIC);
       p.textAlign(p.LEFT,p.CENTER);
-      p.text('(all fields avg)', xPos(USAGE_ORDER.length-1)+12, yPos(cv)-12);
+      p.text('(all fields avg)', xPos(USAGE_ORDER.length-1)+12, yPos(cv.pct)-12);
       p.textStyle(p.NORMAL);
     }
   }
@@ -121,54 +136,49 @@ window.VizEmotionLine = (function () {
 
     const lastU = USAGE_ORDER[USAGE_ORDER.length-1];
 
+    // draw CI bands first (behind lines), only when fully animated
+    if(animProg >= 0.999){
+      EMOTIONS.forEach(em=> drawCI(p, data, em.key, em.color));
+    }
+
     EMOTIONS.forEach(em=>{
       const [r,g,b]=em.color;
 
-      // line style: curious = bold solid, anxious = dashed
-      if(em.dashed){
-        p.drawingContext.setLineDash([6,6]);
-        p.strokeWeight(2.5);
-      } else {
-        p.drawingContext.setLineDash([]);
-        p.strokeWeight(4);
-      }
+      if(em.dashed){ p.drawingContext.setLineDash([6,6]); p.strokeWeight(2.5); }
+      else { p.drawingContext.setLineDash([]); p.strokeWeight(4); }
       p.stroke(r,g,b,235); p.noFill();
       p.beginShape();
       for(let i=0; i<USAGE_ORDER.length; i++){
-        const u = USAGE_ORDER[i];
-        const val = data[u]?data[u][em.key]:null;
-        if(val==null) continue;
-        if(i===0){ p.vertex(xPos(i),yPos(val)); continue; }
+        const d=getVal(data,USAGE_ORDER[i],em.key);
+        if(!d) continue;
+        if(i===0){ p.vertex(xPos(i),yPos(d.pct)); continue; }
         const segProg = Math.min(1, Math.max(0, animProg * totalPoints - (i-1)));
-        const prevVal = data[USAGE_ORDER[i-1]]?data[USAGE_ORDER[i-1]][em.key]:null;
-        if(prevVal==null) continue;
+        const prev=getVal(data,USAGE_ORDER[i-1],em.key);
+        if(!prev) continue;
         const interpX = p.lerp(xPos(i-1), xPos(i), segProg);
-        const interpY = p.lerp(yPos(prevVal), yPos(val), segProg);
+        const interpY = p.lerp(yPos(prev.pct), yPos(d.pct), segProg);
         p.vertex(interpX, interpY);
         if(segProg < 1) break;
       }
       p.endShape();
       p.drawingContext.setLineDash([]);
 
-      // dots
       USAGE_ORDER.forEach((u,i)=>{
-        const val=data[u]?data[u][em.key]:null;
-        if(val==null) return;
+        const d=getVal(data,u,em.key); if(!d) return;
         const dotProg = animProg * totalPoints - (i-1);
         if(i===0 || dotProg >= 1){
-          p.fill(r,g,b); p.noStroke(); p.circle(xPos(i),yPos(val),9);
+          p.fill(r,g,b); p.noStroke(); p.circle(xPos(i),yPos(d.pct),9);
         }
       });
 
-      // end label
       if(animProg >= 1){
-        const lastVal = data[lastU]?data[lastU][em.key]:null;
-        if(lastVal!=null){
+        const d=getVal(data,lastU,em.key);
+        if(d){
           const lx=xPos(USAGE_ORDER.length-1)+12;
-          const actualY=yPos(lastVal);
+          const actualY=yPos(d.pct);
           p.fill(r,g,b); p.noStroke();
           p.textAlign(p.LEFT,p.CENTER); p.textSize(12); p.textStyle(p.BOLD);
-          p.text(em.label+' '+(lastVal>=0?'+':'')+lastVal.toFixed(0)+'%',lx,actualY);
+          p.text(em.label+' '+(d.pct>=0?'+':'')+d.pct.toFixed(0)+'%',lx,actualY);
           p.textStyle(p.NORMAL);
           p.textSize(9); p.fill(r,g,b,150); p.textStyle(p.ITALIC);
           if(em.key==='curious') p.text('rose strongly',lx,actualY+13);
@@ -196,21 +206,23 @@ window.VizEmotionLine = (function () {
       p.fill(50); p.textSize(11); p.textAlign(p.LEFT,p.CENTER);
       p.text(item.label,lx+30,ly); lx+=p.textWidth(item.label)+56;
     });
+    // CI note
+    p.fill(150); p.noStroke(); p.textSize(9); p.textStyle(p.ITALIC);
+    p.text('shaded band = 95% confidence interval', lx, ly);
+    p.textStyle(p.NORMAL);
   }
 
   function drawButtons(p) {
     buttons.forEach(b=>{
       const active=b.label===activeField;
       const [r,g,b2]=FIELD_COLORS[b.label]||[90,90,110];
-      if(active){
-        p.fill(r,g,b2); p.stroke(r,g,b2);
-      } else {
-        p.fill(255); p.stroke(r,g,b2,180);
-      }
+      if(active){ p.fill(r,g,b2); p.stroke(r,g,b2); }
+      else { p.fill(255); p.stroke(r,g,b2,180); }
       p.strokeWeight(1.5);
       p.rect(b.x,b.y,b.w,b.h,4);
-      p.fill(active?255:[r,g,b2]); p.noStroke();
-      if(!active){ p.fill(r,g,b2); }
+      p.noStroke();
+      p.fill(active?255:[r,g,b2]);
+      if(!active) p.fill(r,g,b2);
       p.textAlign(p.CENTER,p.CENTER); p.textSize(11); p.textStyle(p.BOLD);
       p.text(b.label,b.x+b.w/2,b.y+b.h/2);
       p.textStyle(p.NORMAL);
@@ -221,10 +233,7 @@ window.VizEmotionLine = (function () {
     draw: function(p, manager, ai, progress) {
       if(ai!==3) return;
 
-      if(lastAi !== ai){
-        lastAi = ai;
-        animStart = Date.now();
-      }
+      if(lastAi !== ai){ lastAi = ai; animStart = Date.now(); }
 
       if(rawData===null){
         loadData(()=>{computeLayout(p);buildButtons(p);lastP=p;animStart=Date.now();});
