@@ -51,6 +51,11 @@
                 window.VizJobConfidence && window.VizJobConfidence.draw(p, manager, ai, progress);
                 return;
             }
+
+            if (ai === 7) {
+                window.VizConclusion && window.VizConclusion.draw(p, manager, ai, progress);
+                return;
+            }
         }
     };
 })();
