@@ -35,7 +35,7 @@ window.VizEmotionLine = (function () {
   }
 
   function computeLayout(p) {
-    margin={top:60,right:140,bottom:80,left:75};
+    margin={top:90,right:140,bottom:80,left:75};
     plotW=p.width-margin.left-margin.right;
     plotH=p.height-margin.top-margin.bottom-50;
     ox=margin.left; oy=margin.top;
@@ -76,7 +76,7 @@ window.VizEmotionLine = (function () {
       p.text((v>0?'+':'')+v+'%',ox-8,yPos(v));
     });
     p.push(); p.translate(14,oy+plotH/2); p.rotate(-p.HALF_PI);
-    p.textAlign(p.CENTER,p.CENTER); p.textSize(11); p.fill(100);
+    p.textAlign(p.CENTER,p.CENTER); p.textSize(14); p.fill(80);
     p.text('Change in how often felt (vs. lightest AI users)',0,0); p.pop();
     p.textAlign(p.CENTER,p.TOP); p.textSize(11); p.fill(60);
     USAGE_ORDER.forEach((l,i)=>{
@@ -84,7 +84,7 @@ window.VizEmotionLine = (function () {
       p.text(label, xPos(i), oy+plotH+10);
     });
     // small clarifying note about the baseline
-    p.textSize(9); p.fill(140); p.textStyle(p.ITALIC); p.textAlign(p.CENTER,p.TOP);
+    p.textSize(11); p.fill(130); p.textStyle(p.ITALIC); p.textAlign(p.CENTER,p.TOP);
     p.text('Baseline = lightest users\' average (curious 3.06 / anxious 2.03 on a 1\u20135 scale)', ox+plotW/2, oy+plotH+40);
     p.textStyle(p.NORMAL);
   }
@@ -123,7 +123,7 @@ window.VizEmotionLine = (function () {
     const lastU = USAGE_ORDER[USAGE_ORDER.length-1];
     const cv = getVal(ref,lastU,'curious');
     if(cv){
-      p.fill(170); p.noStroke(); p.textSize(9); p.textStyle(p.ITALIC);
+      p.fill(150); p.noStroke(); p.textSize(11); p.textStyle(p.ITALIC);
       p.textAlign(p.LEFT,p.CENTER);
       p.text('(all fields avg)', xPos(USAGE_ORDER.length-1)+12, yPos(cv.pct)-12);
       p.textStyle(p.NORMAL);
@@ -213,7 +213,7 @@ window.VizEmotionLine = (function () {
       p.text(item.label,lx+30,ly); lx+=p.textWidth(item.label)+56;
     });
     // CI note
-    p.fill(150); p.noStroke(); p.textSize(9); p.textStyle(p.ITALIC);
+    p.fill(140); p.noStroke(); p.textSize(11); p.textStyle(p.ITALIC);
     p.text('shaded band = 95% confidence interval', lx, ly);
     p.textStyle(p.NORMAL);
   }
@@ -262,9 +262,13 @@ window.VizEmotionLine = (function () {
       const animProg = easeOut(rawT);
 
       p.background(255);
+      // title
+      p.fill(30); p.noStroke(); p.textAlign(p.LEFT, p.TOP);
+      p.textSize(17); p.textStyle(p.BOLD);
+      p.text('Heavier AI users feel far more curious — but no more anxious', ox, 8);
+      p.textStyle(p.NORMAL);
       drawGrid(p); drawAxes(p);
       drawReferenceLines(p);
       drawLines(p, animProg); drawLegend(p); drawButtons(p);
     }
-  };
-})();
+  };})();
