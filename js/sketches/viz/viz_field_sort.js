@@ -19,8 +19,8 @@
             { id: 1, color: [210, 90,  120], short: 'Arts & Humanities' }
         ],
 
-        _CARD:      9,   // bigger cards
-        _GAP:       3,
+        _CARD:      5,
+        _GAP:       2,
         _GRP:       5,   // cards per tally group
         _GGAP:      6,   // extra gap between groups
         _MAX_DELAY: 0.50,
@@ -42,25 +42,15 @@
             var GGAP   = this._GGAP;
             var GRP_W  = GRP * STEP + GGAP; // width of one tally group
 
-            // 5% per card: full cards + one partial card for the fractional remainder
+            // 100 cards per field: each card = 1% of that field's students
             var particles = [];
             FIELDS.forEach(function (fdef) {
                 var fd = fu[fdef.id];
                 if (!fd) return;
-                var pctUsed   = fd.pct_used;
-                var pctNot    = 100 - pctUsed;
-                var nFullUsed = Math.floor(pctUsed / 5);
-                var fracUsed  = (pctUsed / 5) - nFullUsed;
-                var nFullNot  = Math.floor(pctNot  / 5);
-                var fracNot   = (pctNot  / 5) - nFullNot;
-                for (var i = 0; i < nFullUsed; i++)
-                    particles.push({ field: fdef.id, used: true,  fraction: 1.0, color: fdef.color });
-                if (fracUsed > 0.01)
-                    particles.push({ field: fdef.id, used: true,  fraction: fracUsed, color: fdef.color });
-                for (var i = 0; i < nFullNot; i++)
-                    particles.push({ field: fdef.id, used: false, fraction: 1.0, color: fdef.color });
-                if (fracNot > 0.01)
-                    particles.push({ field: fdef.id, used: false, fraction: fracNot, color: fdef.color });
+                var nUsed = Math.round(fd.pct_used);
+                var nNot  = 100 - nUsed;
+                for (var i = 0; i < nUsed; i++) particles.push({ field: fdef.id, used: true,  color: fdef.color });
+                for (var i = 0; i < nNot;  i++) particles.push({ field: fdef.id, used: false, color: fdef.color });
             });
 
             // Shuffle for mixed cluster start
@@ -288,8 +278,7 @@
                 }
                 p.fill(r, g, b, alpha);
                 p.noStroke();
-                var ds = CARD * (pt.fraction || 1);
-                p.rect(pt.x - ds/2, pt.y - ds/2, ds, ds, 1.5);
+                p.rect(pt.x - CARD/2, pt.y - CARD/2, CARD, CARD, 1.5);
             });
 
             // Field labels
