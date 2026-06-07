@@ -1,6 +1,6 @@
 // viz_field_sort.js
-// NYT-style: cards cluster at bottom, arc through bezier tunnels into field rows
-// Cards grouped in sets of 5 (like tally marks) for easy counting
+// Unit chart: 100 squares per field (each square = 1% of that field's students)
+// Particles slide up into sorted field rows as scroll progresses
 (function () {
     'use strict';
 
@@ -19,10 +19,10 @@
             { id: 1, color: [210, 90,  120], short: 'Arts & Humanities' }
         ],
 
-        _CARD:      9,   // bigger cards
+        _CARD:      9,
         _GAP:       3,
-        _GRP:       5,   // cards per tally group
-        _GGAP:      6,   // extra gap between groups
+        _GRP:       5,
+        _GGAP:      6,
         _MAX_DELAY: 0.50,
 
         _init: function (manager) {
@@ -40,32 +40,18 @@
             var STEP   = CARD + GAP;
             var GRP    = this._GRP;
             var GGAP   = this._GGAP;
-            var GRP_W  = GRP * STEP + GGAP; // width of one tally group
+            var GRP_W  = GRP * STEP + GGAP;
 
-            // More particles for richer representation
-            var TOTAL      = 200;
-            var grandTotal = [1, 2, 3, 4].reduce(function (s, id) {
-                return s + (fu[id] ? fu[id].total : 0);
-            }, 0);
-
+            // 100 squares per field: each square = 1% of that field's students
             var particles = [];
             FIELDS.forEach(function (fdef) {
                 var fd = fu[fdef.id];
                 if (!fd) return;
-                var n     = Math.max(10, Math.round(TOTAL * fd.total / grandTotal));
-                // Round n to nearest multiple of 5 for clean groups
-                n = Math.round(n / 5) * 5;
-                var nUsed = Math.round(n * fd.pct_used / 100 / 5) * 5;
-                var nNot  = n - nUsed;
+                var nUsed = Math.round(fd.pct_used);
+                var nNot  = 100 - nUsed;
                 for (var i = 0; i < nUsed; i++) particles.push({ field: fdef.id, used: true,  color: fdef.color });
                 for (var i = 0; i < nNot;  i++) particles.push({ field: fdef.id, used: false, color: fdef.color });
             });
-
-            // Shuffle for mixed cluster start
-            for (var i = particles.length - 1; i > 0; i--) {
-                var j   = Math.floor(Math.random() * (i + 1));
-                var tmp = particles[i]; particles[i] = particles[j]; particles[j] = tmp;
-            }
 
             // Layout constants
             var LABEL_W = 118;
@@ -77,33 +63,15 @@
             var midX    = chartL + chartW * 0.5;
             var rowH    = chartH / FIELDS.length;
 
-            // Groups per row on each side
-            var sideW    = chartW * 0.45;
+            var sideW      = chartW * 0.45;
             var grpsPerRow = Math.max(1, Math.floor((sideW + GGAP) / GRP_W));
-            var cpr        = grpsPerRow * GRP; // cards per row
+            var cpr        = grpsPerRow * GRP;
             var rowW       = grpsPerRow * GRP * STEP + (grpsPerRow - 1) * GGAP;
 
-            // Used side ends at midX; not-used side starts at midX
             var usedStartXBase = midX - rowW - 4;
             var notStartXBase  = midX + 20;
 
-            // Phyllotaxis spiral start at bottom-center
-            var startCx = ox + W * 0.5;
-            var startCy = oy + H * 0.84;
-            var maxR    = Math.min(W, H) * 0.11;
-            var golden  = Math.PI * (3 - Math.sqrt(5));
-            particles.forEach(function (pt, i) {
-                var angle = i * golden;
-                var r     = maxR * Math.sqrt((i + 0.5) / particles.length);
-                pt.sx = startCx + Math.cos(angle) * r;
-                pt.sy = startCy + Math.sin(angle) * r;
-                pt.x  = pt.sx;
-                pt.y  = pt.sy;
-            });
-
-            var peakY = oy + TOP_PAD * 0.35;
-
-            // End positions — both groups start at the SAME y (first rows aligned)
+            // Assign end positions for all particles
             FIELDS.forEach(function (fdef, fi) {
                 var rowCy   = oy + TOP_PAD + fi * rowH + rowH / 2;
                 var usedPts = particles.filter(function (pt) { return pt.field === fdef.id && pt.used;  });
@@ -113,30 +81,15 @@
                 var notRows  = Math.ceil(notPts.length  / cpr);
                 var maxRows  = Math.max(usedRows, notRows, 1);
 
-                // Same startY for both groups so row 1 aligns horizontally
                 var startY = rowCy - (maxRows * STEP) / 2;
-
-                function place(pts, startX) {
-                    pts.forEach(function (pt, i) {
-                        var row      = Math.floor(i / cpr);
-                        var posInRow = i % cpr;
-                        var grpInRow = Math.floor(posInRow / GRP);
-                        var posInGrp = posInRow % GRP;
-                        pt.ex    = startX + grpInRow * GRP_W + posInGrp * STEP;
-                        pt.ey    = startY + row * STEP;
-                        pt.delay = Math.random() * 0.50;
-                    });
-                }
 
                 usedPts.forEach(function (pt, i) {
                     var row      = Math.floor(i / cpr);
                     var posInRow = i % cpr;
                     var grpInRow = Math.floor(posInRow / GRP);
                     var posInGrp = posInRow % GRP;
-                    pt.ex = usedStartXBase + grpInRow * GRP_W + posInGrp * STEP;
-                    pt.ey = startY + row * STEP;
-                    pt.cx    = midX - chartW * 0.22 + (Math.random() - 0.5) * chartW * 0.10;
-                    pt.cy    = peakY;
+                    pt.ex    = usedStartXBase + grpInRow * GRP_W + posInGrp * STEP;
+                    pt.ey    = startY + row * STEP;
                     pt.delay = Math.random() * 0.50;
                 });
 
@@ -145,12 +98,18 @@
                     var posInRow = i % cpr;
                     var grpInRow = Math.floor(posInRow / GRP);
                     var posInGrp = posInRow % GRP;
-                    pt.ex = notStartXBase + grpInRow * GRP_W + posInGrp * STEP;
-                    pt.ey = startY + row * STEP;
-                    pt.cx    = midX + chartW * 0.22 + (Math.random() - 0.5) * chartW * 0.10;
-                    pt.cy    = peakY;
+                    pt.ex    = notStartXBase + grpInRow * GRP_W + posInGrp * STEP;
+                    pt.ey    = startY + row * STEP;
                     pt.delay = Math.random() * 0.50;
                 });
+            });
+
+            // Start positions: each particle begins 60px below its end position
+            particles.forEach(function (pt) {
+                pt.sx = pt.ex;
+                pt.sy = pt.ey + 60;
+                pt.x  = pt.sx;
+                pt.y  = pt.sy;
             });
 
             // Button positions above chart
@@ -217,44 +176,12 @@
             }
             this._prevPressed = pressed;
 
-            // Tunnel arcs (fade as cards arrive)
-            var tunnelAlpha = Math.max(0, (1 - t * 1.8) * 80);
-            if (tunnelAlpha > 1) {
-                p.noFill();
-                p.strokeWeight(1.2);
-                var startCx = ox + W * 0.5;
-                var startCy = oy + H * 0.84;
-                var peakY   = oy + TOP_PAD * 0.35;
-                FIELDS.forEach(function (fdef, fi) {
-                    var c     = fdef.color;
-                    var rowCy = oy + TOP_PAD + fi * rowH + rowH / 2;
-                    p.stroke(c[0], c[1], c[2], tunnelAlpha);
-                    var exU = midX - chartW * 0.22;
-                    p.beginShape();
-                    for (var s = 0; s <= 1.001; s += 0.03) {
-                        var it = 1 - s;
-                        p.vertex(it*it*startCx + 2*it*s*exU + s*s*exU,
-                                 it*it*startCy + 2*it*s*peakY + s*s*rowCy);
-                    }
-                    p.endShape();
-                    var exN = midX + chartW * 0.22;
-                    p.beginShape();
-                    for (var s = 0; s <= 1.001; s += 0.03) {
-                        var it = 1 - s;
-                        p.vertex(it*it*startCx + 2*it*s*exN + s*s*exN,
-                                 it*it*startCy + 2*it*s*peakY + s*s*rowCy);
-                    }
-                    p.endShape();
-                });
-            }
-
-            // Move particles along bezier arcs
+            // Slide particles into their sorted field positions
             particles.forEach(function (pt) {
                 var lt = Math.max(0, Math.min(1, (t - pt.delay) / (1 - MAX_DELAY)));
                 var et = smooth(lt);
-                var it = 1 - et;
-                pt.x = it*it*pt.sx + 2*it*et*pt.cx + et*et*pt.ex;
-                pt.y = it*it*pt.sy + 2*it*et*pt.cy + et*et*pt.ey;
+                pt.x = pt.sx + et * (pt.ex - pt.sx);
+                pt.y = pt.sy + et * (pt.ey - pt.sy);
             });
 
             // Background grid lines
@@ -279,7 +206,6 @@
                 if (pt.used) {
                     r = pt.color[0]; g = pt.color[1]; b = pt.color[2];
                 } else {
-                    // blend field color with grey for not-using-AI cards
                     r = Math.round(pt.color[0] * 0.35 + 195 * 0.65);
                     g = Math.round(pt.color[1] * 0.35 + 195 * 0.65);
                     b = Math.round(pt.color[2] * 0.35 + 195 * 0.65);
@@ -290,15 +216,15 @@
             });
 
             // Field labels
-            var usedMidX = (chartL + midX) / 2;       // center of Using AI section
-            var notMidX  = midX + chartW * 0.25;       // center of Not Using AI section
+            var usedMidX = (chartL + midX) / 2;
+            var notMidX  = midX + chartW * 0.25;
             FIELDS.forEach(function (fdef, fi) {
-                var fd       = fu[fdef.id];
+                var fd    = fu[fdef.id];
                 if (!fd) return;
-                var rowCy    = oy + TOP_PAD + fi * rowH + rowH / 2;
-                var sepY     = oy + TOP_PAD + (fi + 1) * rowH; // row separator
-                var pctY     = sepY - 28; // percentage number above separator
-                var lblY     = sepY - 12; // "used AI" / "not using AI" label
+                var rowCy = oy + TOP_PAD + fi * rowH + rowH / 2;
+                var sepY  = oy + TOP_PAD + (fi + 1) * rowH;
+                var pctY  = sepY - 28;
+                var lblY  = sepY - 12;
                 p.noStroke();
                 p.fill(fdef.color[0], fdef.color[1], fdef.color[2]);
                 p.rect(ox + 6, rowCy - 6, 11, 11, 2);
@@ -307,7 +233,6 @@
                 p.textSize(Math.min(12, rowH * 0.22));
                 p.text(fdef.short, ox + 21, rowCy);
 
-                // Using AI percentage — teal to match button
                 p.fill(20, 110, 90);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.textSize(13);
@@ -318,7 +243,6 @@
                 p.textSize(10);
                 p.text('using AI', usedMidX, lblY);
 
-                // Not Using AI percentage — gray to match button
                 var notPct = (100 - fd.pct_used).toFixed(1);
                 p.fill(70, 80, 95);
                 p.textAlign(p.CENTER, p.CENTER);
@@ -336,7 +260,6 @@
                 var usedOn = filter === 'used';
                 var notOn  = filter === 'notused';
 
-                // "Using AI" — teal
                 p.noStroke();
                 p.fill(usedOn ? 20 : 210, usedOn ? 130 : 240, usedOn ? 110 : 230);
                 p.rect(btns.used.x, btns.used.y, btns.used.w, btns.used.h, 5);
@@ -345,7 +268,6 @@
                 p.textSize(11);
                 p.text('Using AI', btns.used.x + btns.used.w / 2, btns.used.y + btns.used.h / 2);
 
-                // "Not Using AI" — slate gray (distinct from all field colors)
                 p.noStroke();
                 p.fill(notOn ? 80 : 225, notOn ? 90 : 225, notOn ? 105 : 228);
                 p.rect(btns.notused.x, btns.notused.y, btns.notused.w, btns.notused.h, 5);
@@ -361,6 +283,12 @@
             p.textAlign(p.CENTER, p.TOP);
             p.textSize(13);
             p.text('AI Usage Rates Among Students: How Each Major Compares', ox + W / 2, oy + 6);
+
+            // On-canvas caption
+            p.fill(120);
+            p.textAlign(p.CENTER, p.BOTTOM);
+            p.textSize(10);
+            p.text('Each square = 1% of students in this field', ox + W / 2, oy + H - 4);
         }
     };
 })();
