@@ -42,23 +42,25 @@
             var GGAP   = this._GGAP;
             var GRP_W  = GRP * STEP + GGAP; // width of one tally group
 
-            // More particles for richer representation
-            var TOTAL      = 200;
-            var grandTotal = [1, 2, 3, 4].reduce(function (s, id) {
-                return s + (fu[id] ? fu[id].total : 0);
-            }, 0);
-
+            // 5% per card: full cards + one partial card for the fractional remainder
             var particles = [];
             FIELDS.forEach(function (fdef) {
                 var fd = fu[fdef.id];
                 if (!fd) return;
-                var n     = Math.max(10, Math.round(TOTAL * fd.total / grandTotal));
-                // Round n to nearest multiple of 5 for clean groups
-                n = Math.round(n / 5) * 5;
-                var nUsed = Math.round(n * fd.pct_used / 100 / 5) * 5;
-                var nNot  = n - nUsed;
-                for (var i = 0; i < nUsed; i++) particles.push({ field: fdef.id, used: true,  color: fdef.color });
-                for (var i = 0; i < nNot;  i++) particles.push({ field: fdef.id, used: false, color: fdef.color });
+                var pctUsed   = fd.pct_used;
+                var pctNot    = 100 - pctUsed;
+                var nFullUsed = Math.floor(pctUsed / 5);
+                var fracUsed  = (pctUsed / 5) - nFullUsed;
+                var nFullNot  = Math.floor(pctNot  / 5);
+                var fracNot   = (pctNot  / 5) - nFullNot;
+                for (var i = 0; i < nFullUsed; i++)
+                    particles.push({ field: fdef.id, used: true,  fraction: 1.0, color: fdef.color });
+                if (fracUsed > 0.01)
+                    particles.push({ field: fdef.id, used: true,  fraction: fracUsed, color: fdef.color });
+                for (var i = 0; i < nFullNot; i++)
+                    particles.push({ field: fdef.id, used: false, fraction: 1.0, color: fdef.color });
+                if (fracNot > 0.01)
+                    particles.push({ field: fdef.id, used: false, fraction: fracNot, color: fdef.color });
             });
 
             // Shuffle for mixed cluster start
@@ -286,7 +288,8 @@
                 }
                 p.fill(r, g, b, alpha);
                 p.noStroke();
-                p.rect(pt.x - CARD/2, pt.y - CARD/2, CARD, CARD, 1.5);
+                var ds = CARD * (pt.fraction || 1);
+                p.rect(pt.x - ds/2, pt.y - ds/2, ds, ds, 1.5);
             });
 
             // Field labels
