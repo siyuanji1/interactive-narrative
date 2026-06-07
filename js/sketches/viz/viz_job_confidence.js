@@ -115,6 +115,12 @@ window.VizJobConfidence = {
                 p.noStroke();
                 p.fill(fd.r, fd.g, fd.b, da1);
                 p.circle(xlL, yp(fd.low.mean), dotR * 2);
+                // Mean value to the left of each low dot
+                p.textAlign(p.RIGHT, p.CENTER);
+                p.textSize(9);
+                p.textStyle(p.BOLD);
+                p.text(fd.low.mean.toFixed(2), xlL - dotR - 4, yp(fd.low.mean));
+                p.textStyle(p.NORMAL);
             }
 
             // Phase 2: connecting line grows left → right
@@ -140,10 +146,15 @@ window.VizJobConfidence = {
                 p.fill(fd.r, fd.g, fd.b, da3);
                 p.circle(xlH, yp(fd.high.mean), dotR * 2);
 
+                // Field name above, mean value below the high dot
                 p.fill(fd.r, fd.g, fd.b, da3);
                 p.textAlign(p.LEFT, p.CENTER);
                 p.textSize(10);
-                p.text(fd.name, xlH + 14, yp(fd.high.mean));
+                p.text(fd.name, xlH + 14, yp(fd.high.mean) - 7);
+                p.textStyle(p.BOLD);
+                p.textSize(9);
+                p.text(fd.high.mean.toFixed(2), xlH + 14, yp(fd.high.mean) + 5);
+                p.textStyle(p.NORMAL);
             }
         }
 
@@ -152,7 +163,7 @@ window.VizJobConfidence = {
         p.fill(155, 155, 155);
         p.textAlign(p.CENTER, p.TOP);
         p.textSize(9);
-        p.text('Bar = confidence interval   ·   Dot = mean', ox + W / 2, padB + 10);
+        p.text('Bars = Q1–Q3 range   ·   Dot = mean', ox + W / 2, padB + 10);
 
         // Chart title
         p.noStroke();
