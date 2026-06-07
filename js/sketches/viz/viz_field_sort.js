@@ -105,40 +105,29 @@
                 var notRows  = Math.ceil(notPts.length  / cpr);
                 var maxRows  = Math.max(usedRows, notRows, 1);
 
-                // Same startY for both groups so row 1 aligns horizontally
+                // startY centers the block vertically in the row band
                 var startY = rowCy - (maxRows * STEP) / 2;
 
-                function place(pts, startX) {
-                    pts.forEach(function (pt, i) {
-                        var row      = Math.floor(i / cpr);
-                        var posInRow = i % cpr;
-                        var grpInRow = Math.floor(posInRow / GRP);
-                        var posInGrp = posInRow % GRP;
-                        pt.ex    = startX + grpInRow * GRP_W + posInGrp * STEP;
-                        pt.ey    = startY + row * STEP;
-                        pt.delay = Math.random() * 0.50;
-                    });
-                }
-
+                // Vertical-first fill: columns stack top-to-bottom for easier comparison
                 usedPts.forEach(function (pt, i) {
-                    var row      = Math.floor(i / cpr);
-                    var posInRow = i % cpr;
-                    var grpInRow = Math.floor(posInRow / GRP);
-                    var posInGrp = posInRow % GRP;
-                    pt.ex = usedStartXBase + grpInRow * GRP_W + posInGrp * STEP;
-                    pt.ey = startY + row * STEP;
+                    var col      = Math.floor(i / maxRows);
+                    var row      = i % maxRows;
+                    var grpInRow = Math.floor(col / GRP);
+                    var posInGrp = col % GRP;
+                    pt.ex    = usedStartXBase + grpInRow * GRP_W + posInGrp * STEP;
+                    pt.ey    = startY + row * STEP;
                     pt.cx    = midX - chartW * 0.22 + (Math.random() - 0.5) * chartW * 0.10;
                     pt.cy    = peakY;
                     pt.delay = Math.random() * 0.50;
                 });
 
                 notPts.forEach(function (pt, i) {
-                    var row      = Math.floor(i / cpr);
-                    var posInRow = i % cpr;
-                    var grpInRow = Math.floor(posInRow / GRP);
-                    var posInGrp = posInRow % GRP;
-                    pt.ex = notStartXBase + grpInRow * GRP_W + posInGrp * STEP;
-                    pt.ey = startY + row * STEP;
+                    var col      = Math.floor(i / maxRows);
+                    var row      = i % maxRows;
+                    var grpInRow = Math.floor(col / GRP);
+                    var posInGrp = col % GRP;
+                    pt.ex    = notStartXBase + grpInRow * GRP_W + posInGrp * STEP;
+                    pt.ey    = startY + row * STEP;
                     pt.cx    = midX + chartW * 0.22 + (Math.random() - 0.5) * chartW * 0.10;
                     pt.cy    = peakY;
                     pt.delay = Math.random() * 0.50;
