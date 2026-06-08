@@ -129,6 +129,22 @@ window.VizEmotionLine = (function () {
     });
   }
 
+  function drawBaselineMarker(p, animProg) {
+    if(animProg < 0.6) return;
+    const a = 255*Math.min(1,(animProg-0.6)/0.4);
+    const gx = groupX(0);
+    const zeroY = yPos(0);
+    p.noStroke();
+    p.fill(CURIOUS_COL[0],CURIOUS_COL[1],CURIOUS_COL[2], a);
+    p.circle(gx-8, zeroY, 8);
+    p.fill(ANXIOUS_COL[0],ANXIOUS_COL[1],ANXIOUS_COL[2], a);
+    p.circle(gx+8, zeroY, 8);
+    p.fill(90, a); p.textAlign(p.CENTER, p.BOTTOM);
+    p.textSize(11); p.textStyle(p.ITALIC);
+    p.text('baseline = 0%', gx, zeroY-10);
+    p.textStyle(p.NORMAL);
+  }
+
   function drawEndLabels(p, animProg){
     if(animProg < 1) return;
     const data = aggData[activeField];
@@ -223,6 +239,7 @@ window.VizEmotionLine = (function () {
 
       drawGrid(p); drawAxes(p);
       drawBars(p, animProg);
+      drawBaselineMarker(p, animProg);
       drawEndLabels(p, animProg);
       drawLegend(p); drawButtons(p);
     }
