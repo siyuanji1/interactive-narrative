@@ -36,7 +36,7 @@ window.VizEmotionLine = (function () {
   }
 
   function computeLayout(p) {
-    margin={top:92,right:150,bottom:130,left:78};
+    margin={top:92,right:185,bottom:155,left:78};
     plotW=p.width-margin.left-margin.right;
     plotH=p.height-margin.top-margin.bottom;
     ox=margin.left; oy=margin.top;
@@ -136,7 +136,7 @@ window.VizEmotionLine = (function () {
     const last = USAGE_ORDER.length-1;
     const cd = getVal(data,USAGE_ORDER[last],'curious');
     const ad = getVal(data,USAGE_ORDER[last],'anxious');
-    const lx = ox+plotW+10;
+    const lx = ox+plotW+8;
     if(cd){
       p.fill(CURIOUS_COL[0],CURIOUS_COL[1],CURIOUS_COL[2]); p.noStroke();
       p.textAlign(p.LEFT,p.CENTER); p.textSize(12); p.textStyle(p.BOLD);
