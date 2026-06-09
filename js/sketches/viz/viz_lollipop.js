@@ -9,8 +9,8 @@ window.VizLollipop = (function () {
     { label: 'Critical thinking',  score: 3.037, type: 'thinking',     q: 'Q29e' },
   ];
 
-  const PROD_COL  = [51, 92, 129];
-  const THINK_COL = [150, 165, 180];
+  const PROD_COL  = [37, 99, 142];    // strong blue
+  const THINK_COL = [196, 121, 38];   // strong amber (clear contrast vs blue)
   const NEUTRAL   = 3;
   const X_MIN = 1, X_MAX = 5;
   const ANIM_DURATION = 1000;
@@ -44,11 +44,11 @@ window.VizLollipop = (function () {
       p.stroke(v===NEUTRAL?80:0,v===NEUTRAL?80:0,v===NEUTRAL?80:0,v===NEUTRAL?160:15);
       p.strokeWeight(v===NEUTRAL?2:1);
       p.line(x, oy-10, x, oy+plotH);
-      p.noStroke(); p.fill(130); p.textSize(12);
+      p.noStroke(); p.fill(130); p.textSize(11);
       p.textAlign(p.CENTER, p.TOP);
       p.text(v, x, oy+plotH+10);
     });
-    p.fill(80); p.textSize(12); p.textAlign(p.CENTER, p.TOP);
+    p.fill(80); p.textSize(11); p.textAlign(p.CENTER, p.TOP);
     p.text('Neutral (3)', xPos(NEUTRAL), oy+plotH+28);
   }
 
@@ -65,12 +65,13 @@ window.VizLollipop = (function () {
     const thinkAvg = (3.227+3.124+3.037)/3;
     const sepY = (yPos(2)+yPos(3))/2;
     p.noStroke(); p.textAlign(p.LEFT, p.CENTER);
-    p.fill(PROD_COL[0],PROD_COL[1],PROD_COL[2]); p.textSize(12); p.textStyle(p.BOLD);
+    p.fill(PROD_COL[0],PROD_COL[1],PROD_COL[2]); p.textSize(11); p.textStyle(p.BOLD);
     p.text('Productivity avg '+prodAvg.toFixed(2), ox+plotW+15, sepY-12);
     p.fill(THINK_COL[0],THINK_COL[1],THINK_COL[2]);
     p.text('Thinking avg '+thinkAvg.toFixed(2), ox+plotW+15, sepY+6);
     p.fill(100); p.textStyle(p.NORMAL); p.textSize(10);
     p.text('all thinking skills sit near neutral', ox+plotW+15, sepY+24);
+    p.textStyle(p.NORMAL);
   }
 
   function drawLollipops(p) {
@@ -90,15 +91,15 @@ window.VizLollipop = (function () {
       const col = sk.type === 'productivity' ? PROD_COL : THINK_COL;
       const [r,g,b] = col;
       const isHov = hoveredItem === i;
-      const alpha = hoveredItem !== null ? (isHov ? 255 : 50) : 210;
+      const alpha = hoveredItem !== null ? (isHov ? 255 : 60) : 230;
 
       if (isHov) {
-        p.noStroke(); p.fill(r,g,b,8);
+        p.noStroke(); p.fill(r,g,b,12);
         p.rect(ox-10, y-26, plotW+130, 52, 4);
       }
 
       if (t > 0) {
-        p.stroke(r,g,b,alpha*0.7); p.strokeWeight(isHov?2.5:2);
+        p.stroke(r,g,b,alpha*0.7); p.strokeWeight(isHov?3:2.4);
         p.line(nx, y, x, y);
       }
 
@@ -108,13 +109,13 @@ window.VizLollipop = (function () {
       }
 
       p.fill(r,g,b,alpha); p.textAlign(p.LEFT,p.CENTER);
-      p.textSize(isHov?15:13); p.textStyle(isHov?p.BOLD:p.NORMAL);
+      p.textSize(isHov?14:12); p.textStyle(isHov?p.BOLD:p.NORMAL);
       p.text(sk.score.toFixed(2), xFull+16, y);
       p.textStyle(p.NORMAL);
 
       p.noStroke(); p.fill(isHov?20:60, alpha);
       p.textAlign(p.RIGHT,p.CENTER);
-      p.textSize(isHov?15:13); p.textStyle(isHov?p.BOLD:p.NORMAL);
+      p.textSize(isHov?13:12); p.textStyle(isHov?p.BOLD:p.NORMAL);
       p.text(sk.label, ox-12, y);
       p.textStyle(p.NORMAL);
 
@@ -124,18 +125,18 @@ window.VizLollipop = (function () {
         const interp = diff >= 0.5 ? 'clearly above neutral' :
                        diff >= 0.2 ? 'modestly above neutral' :
                                      'barely above neutral';
-        // fixed in bottom-right empty area — never overlaps data or annotations
         const tx = ox + plotW * 0.72;
         const ty = oy + plotH - th - 10;
-        p.fill(30,30,36,235); p.stroke(80); p.strokeWeight(1);
+        p.fill(30,30,36,238); p.stroke(80); p.strokeWeight(1);
         p.rect(tx,ty,tw,th,6);
         p.noStroke();
         p.fill(255); p.textSize(13); p.textStyle(p.BOLD); p.textAlign(p.LEFT,p.TOP);
         p.text(sk.label, tx+pad, ty+pad);
         p.textStyle(p.NORMAL);
-        p.fill(200); p.textSize(11);
+        p.fill(210); p.textSize(11);
         p.text('Score '+sk.score.toFixed(2)+'  ('+(diff>=0?'+':'')+diff.toFixed(2)+' vs neutral)', tx+pad, ty+pad+20);
-        p.fill(r,g,b);
+        // brighter version of the series color so it's readable on dark bg
+        p.fill(Math.min(255,r+90), Math.min(255,g+90), Math.min(255,b+90));
         p.text(interp, tx+pad, ty+pad+38);
         p.fill(150); p.textSize(9);
         p.text(sk.q, tx+pad, ty+pad+56);
@@ -149,17 +150,17 @@ window.VizLollipop = (function () {
       { label: 'Thinking skills (AI helps less)',     col: THINK_COL },
     ];
     const ly = oy + plotH + 78;
-    p.textSize(15);
+    p.textSize(11);
     let totalW = 0;
-    items.forEach(({label}) => { totalW += p.textWidth(label) + 64; });
+    items.forEach(({label}) => { totalW += p.textWidth(label) + 50; });
     let lx = ox + (plotW - totalW)/2;
     if(lx < ox) lx = ox;
     items.forEach(({ label, col }) => {
       const [r,g,b] = col;
-      p.noStroke(); p.fill(r,g,b); p.circle(lx+9, ly, 18);
-      p.fill(50); p.textSize(15); p.textAlign(p.LEFT, p.CENTER);
-      p.text(label, lx+24, ly);
-      lx += p.textWidth(label) + 64;
+      p.noStroke(); p.fill(r,g,b); p.circle(lx+7, ly, 13);
+      p.fill(50); p.textSize(11); p.textAlign(p.LEFT, p.CENTER);
+      p.text(label, lx+18, ly);
+      lx += p.textWidth(label) + 50;
     });
   }
 
@@ -186,8 +187,11 @@ window.VizLollipop = (function () {
       p.background(255);
 
       p.fill(30); p.noStroke(); p.textAlign(p.LEFT, p.TOP);
-      p.textSize(17); p.textStyle(p.BOLD);
+      p.textSize(14); p.textStyle(p.BOLD);
       p.text('AI boosts everyday productivity more than deeper thinking skills', ox, 12);
+      p.textStyle(p.NORMAL);
+      p.fill(140); p.textSize(11); p.textStyle(p.ITALIC); p.textAlign(p.LEFT,p.TOP);
+      p.text('Hover any dot for details. Score 3 = neutral; further right = AI helps more.', ox, 34);
       p.textStyle(p.NORMAL);
 
       drawGrid(p);
